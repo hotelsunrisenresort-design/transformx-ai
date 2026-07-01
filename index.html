@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TransformX AI — Premium Fitness & Transformation Platform</title>
+  <meta name="description" content="AI-powered fitness, nutrition, and body transformation platform. Personalized workout plans, Indian diet plans, progress tracking, and expert coaching — all in one app.">
+  <meta name="keywords" content="fitness app, workout tracker, Indian diet plan, muscle gain, fat loss, AI coaching, body transformation">
+  <meta property="og:title" content="TransformX AI — Transform Your Body with AI">
+  <meta property="og:description" content="Premium AI fitness platform. Personalized workouts, Indian meal plans, progress tracking.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <style>
+    /* Landing page extras */
+    .landing-nav-inner { display: flex; align-items: center; justify-content: space-between; }
+    .nav-links { display: flex; gap: 32px; }
+    .nav-links a { font-size: 0.88rem; font-weight: 500; color: var(--text-secondary); transition: color 0.2s; }
+    .nav-links a:hover { color: var(--text-primary); }
+    .nav-actions { display: flex; gap: 10px; align-items: center; }
+    @media (max-width: 768px) { .nav-links { display: none; } }
+    .hero-content { flex: 1; max-width: 600px; }
+    .hero-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.2); padding: 6px 14px; border-radius: 999px; font-size: 0.78rem; font-weight: 600; color: var(--primary-light); margin-bottom: 24px; }
+    .floating-stat {
+      background: var(--bg-card);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-sm);
+      padding: 10px 16px;
+      box-shadow: var(--shadow);
+      display: flex; align-items: center; gap: 8px;
+      font-size: 0.82rem;
+      white-space: nowrap;
+    }
+    .floating-stat strong { font-weight: 700; }
+    .pill-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+    .pill { background: rgba(255,255,255,0.06); border: 1px solid var(--border); border-radius: 999px; padding: 5px 14px; font-size: 0.78rem; color: var(--text-secondary); }
+    .section-label { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--primary-light); margin-bottom: 12px; }
+    .how-step { display: flex; gap: 20px; align-items: flex-start; padding: 24px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); transition: var(--transition); }
+    .how-step:hover { border-color: var(--primary); transform: translateX(4px); }
+    .how-step-num { width: 44px; height: 44px; background: linear-gradient(135deg, var(--primary), var(--accent)); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.1rem; color: white; flex-shrink: 0; }
+    .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 48px; }
+    @media (max-width: 900px) { .footer-grid { grid-template-columns: 1fr 1fr; gap: 32px; } }
+    @media (max-width: 600px) { .footer-grid { grid-template-columns: 1fr; } }
+    .footer-link { display: block; color: var(--text-muted); font-size: 0.85rem; margin-bottom: 10px; transition: color 0.2s; }
+    .footer-link:hover { color: var(--text-primary); }
+    .hero-visual { flex: 1; display: flex; align-items: center; justify-content: center; }
+    @media (max-width: 1000px) { .hero-visual { display: none; } }
+    .app-mockup-card { background: var(--bg-card); border: 1px solid var(--border-light); border-radius: 20px; padding: 20px; box-shadow: 0 20px 80px rgba(0,0,0,0.6), var(--shadow-glow); max-width: 420px; width: 100%; transform: perspective(800px) rotateY(-8deg); transition: transform 0.5s ease; }
+    .app-mockup-card:hover { transform: perspective(800px) rotateY(0deg); }
+    .mock-row { display: flex; align-items: center; gap: 10px; background: var(--bg-secondary); border-radius: 10px; padding: 10px 14px; margin-bottom: 8px; }
+    .mock-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
+    .mock-bar-wrap { flex: 1; }
+    .mock-bar { height: 6px; border-radius: 999px; }
+    .mock-label { font-size: 0.75rem; font-weight: 600; margin-bottom: 4px; }
+    .mock-val { font-size: 0.72rem; color: var(--text-muted); }
+    @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-12px); } }
+  </style>
+</head>
+<body>
+
+<!-- NAVIGATION -->
+<nav class="landing-nav" id="mainNav">
+  <div class="container">
+    <div class="landing-nav-inner">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:36px;height:36px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;">⚡</div>
+        <span style="font-weight:800;font-size:1.15rem;">Transform<span style="color:#818cf8;">X AI</span></span>
+      </div>
+      <div class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#how-it-works">How it Works</a>
+        <a href="#testimonials">Stories</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#faq">FAQ</a>
+      </div>
+      <div class="nav-actions">
+        <button class="btn-icon btn-ghost" onclick="toggleTheme()" id="themeBtn" title="Toggle theme">🌙</button>
+        <a href="auth.html" class="btn btn-ghost btn-sm">Log in</a>
+        <a href="auth.html?mode=signup" class="btn btn-primary btn-sm">Get Started Free</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="container" style="display:flex;align-items:center;gap:60px;padding-top:80px;padding-bottom:80px;min-height:100vh;">
+    <div class="hero-content">
+      <div class="hero-badge" style="animation:fadeIn 0.6s ease">
+        <span>🤖</span> AI-Powered Transformation Platform
+      </div>
+      <h1 style="animation:fadeIn 0.6s 0.1s ease both;">
+        Your <span class="text-gradient">Complete</span> Body<br>Transformation<br>Starts Here
+      </h1>
+      <p style="font-size:1.1rem;max-width:480px;margin-top:20px;line-height:1.8;animation:fadeIn 0.6s 0.2s ease both;">
+        AI-personalized workout programs, Indian meal plans, progress tracking, habit coaching, and expert-level guidance — all in one premium platform.
+      </p>
+      <div class="pill-row">
+        <span class="pill">🥗 Indian Diet Plans</span>
+        <span class="pill">💪 Custom Workouts</span>
+        <span class="pill">📊 Progress Tracking</span>
+        <span class="pill">🏆 Gamification</span>
+        <span class="pill">🤖 AI Coach</span>
+      </div>
+      <div class="hero-cta" style="animation:fadeIn 0.6s 0.3s ease both;">
+        <a href="auth.html?mode=signup" class="btn btn-primary btn-xl">
+          🚀 Start Free — No credit card
+        </a>
+        <a href="#features" class="btn btn-secondary btn-xl">See Features</a>
+      </div>
+      <div class="hero-stats" style="animation:fadeIn 0.6s 0.4s ease both;">
+        <div>
+          <div class="hero-stat-value text-gradient" id="counterUsers">0</div>
+          <div class="hero-stat-label">Active Users</div>
+        </div>
+        <div>
+          <div class="hero-stat-value text-gradient-2" id="counterWorkouts">0</div>
+          <div class="hero-stat-label">Workouts Logged</div>
+        </div>
+        <div>
+          <div class="hero-stat-value text-gradient" id="counterTransforms">0</div>
+          <div class="hero-stat-label">Transformations</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- App Preview Mockup -->
+    <div class="hero-visual">
+      <div class="app-mockup-card" style="animation:fadeIn 0.8s 0.2s ease both;">
+        <!-- Header -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+          <div>
+            <div style="font-size:0.75rem;color:var(--text-muted);">Good morning 🌅</div>
+            <div style="font-weight:800;font-size:1.1rem;">Arjun's Dashboard</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.2);border-radius:999px;padding:5px 12px;">
+            <span style="animation:flame 1.5s infinite">🔥</span>
+            <span style="font-size:0.82rem;font-weight:700;color:#f97316;">24 days</span>
+          </div>
+        </div>
+        <!-- Stats row -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
+          <div style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.2);border-radius:10px;padding:10px;text-align:center;">
+            <div style="font-size:1.2rem;font-weight:800;color:#818cf8;">1,847</div>
+            <div style="font-size:0.65rem;color:var(--text-muted);">Calories left</div>
+          </div>
+          <div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.2);border-radius:10px;padding:10px;text-align:center;">
+            <div style="font-size:1.2rem;font-weight:800;color:#10b981;">142g</div>
+            <div style="font-size:0.65rem;color:var(--text-muted);">Protein today</div>
+          </div>
+          <div style="background:rgba(6,182,212,0.1);border:1px solid rgba(6,182,212,0.2);border-radius:10px;padding:10px;text-align:center;">
+            <div style="font-size:1.2rem;font-weight:800;color:#06b6d4;">6/8</div>
+            <div style="font-size:0.65rem;color:var(--text-muted);">Water glasses</div>
+          </div>
+        </div>
+        <!-- Macro bars -->
+        <div class="mock-row">
+          <div class="mock-icon" style="background:rgba(99,102,241,0.15);">🏋️</div>
+          <div class="mock-bar-wrap">
+            <div class="mock-label">Today's Workout — Push Day A</div>
+            <div class="progress-wrap" style="height:5px;"><div class="progress-bar" style="width:60%;background:linear-gradient(90deg,#6366f1,#8b5cf6);"></div></div>
+            <div class="mock-val">6 of 10 sets completed</div>
+          </div>
+        </div>
+        <div class="mock-row">
+          <div class="mock-icon" style="background:rgba(16,185,129,0.15);">🥗</div>
+          <div class="mock-bar-wrap">
+            <div class="mock-label">Protein Goal</div>
+            <div class="progress-wrap" style="height:5px;"><div class="progress-bar" style="width:83%;background:linear-gradient(90deg,#10b981,#06b6d4);"></div></div>
+            <div class="mock-val">142g / 170g</div>
+          </div>
+        </div>
+        <div class="mock-row">
+          <div class="mock-icon" style="background:rgba(245,158,11,0.15);">⭐</div>
+          <div class="mock-bar-wrap">
+            <div class="mock-label">Level 5 — Warrior</div>
+            <div class="progress-wrap" style="height:5px;"><div class="progress-bar" style="width:72%;background:linear-gradient(90deg,#f59e0b,#f97316);"></div></div>
+            <div class="mock-val">3,600 / 5,000 XP</div>
+          </div>
+        </div>
+        <!-- AI tip -->
+        <div style="background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(139,92,246,0.1));border:1px solid rgba(99,102,241,0.2);border-radius:10px;padding:12px;margin-top:8px;">
+          <div style="font-size:0.7rem;font-weight:700;color:var(--primary-light);margin-bottom:4px;">🤖 AI Coach</div>
+          <div style="font-size:0.78rem;color:var(--text-secondary);line-height:1.5;">Great work on yesterday's deadlifts! Today, increase by 2.5kg — you're ready for the progressive overload.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TRUSTED BY / SOCIAL PROOF -->
+<section style="padding:40px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:var(--bg-secondary);">
+  <div class="container" style="text-align:center;">
+    <p style="font-size:0.8rem;color:var(--text-muted);letter-spacing:0.08em;text-transform:uppercase;font-weight:600;margin-bottom:20px;">Evidence-based coaching backed by science</p>
+    <div style="display:flex;justify-content:center;gap:48px;flex-wrap:wrap;align-items:center;">
+      <div style="text-align:center;"><div style="font-size:1.5rem;font-weight:800;">NASM</div><div style="font-size:0.7rem;color:var(--text-muted);">Certified Methods</div></div>
+      <div style="text-align:center;"><div style="font-size:1.5rem;font-weight:800;">ISSN</div><div style="font-size:0.7rem;color:var(--text-muted);">Nutrition Guidelines</div></div>
+      <div style="text-align:center;"><div style="font-size:1.5rem;font-weight:800;">ACSMs</div><div style="font-size:0.7rem;color:var(--text-muted);">Exercise Science</div></div>
+      <div style="text-align:center;"><div style="font-size:1.5rem;font-weight:800;">PubMed</div><div style="font-size:0.7rem;color:var(--text-muted);">Peer-Reviewed Research</div></div>
+      <div style="text-align:center;"><div style="font-size:1.5rem;font-weight:800;">GPT-4o</div><div style="font-size:0.7rem;color:var(--text-muted);">AI Engine</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="section" id="features">
+  <div class="container">
+    <div style="text-align:center;max-width:580px;margin:0 auto 60px;">
+      <div class="section-label">Features</div>
+      <h2>Everything You Need to <span class="text-gradient">Transform</span></h2>
+      <p style="margin-top:16px;font-size:1rem;line-height:1.8;">A complete platform replacing your personal trainer, nutritionist, and life coach — at a fraction of the cost.</p>
+    </div>
+    <div class="features-grid" id="featuresGrid"></div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="section" id="how-it-works" style="background:var(--bg-secondary);">
+  <div class="container">
+    <div style="text-align:center;max-width:580px;margin:0 auto 60px;">
+      <div class="section-label">How It Works</div>
+      <h2>From Signup to <span class="text-gradient">Results</span> in 4 Steps</h2>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px;max-width:680px;margin:0 auto;" id="howSteps"></div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="section" id="testimonials">
+  <div class="container">
+    <div style="text-align:center;max-width:580px;margin:0 auto 60px;">
+      <div class="section-label">Success Stories</div>
+      <h2>Real Results from <span class="text-gradient">Real People</span></h2>
+      <p style="margin-top:16px;">These transformations happened with consistency, good coaching, and TransformX AI.</p>
+    </div>
+    <div class="testimonials-grid" id="testimonialsGrid"></div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="section" id="pricing" style="background:var(--bg-secondary);">
+  <div class="container">
+    <div style="text-align:center;max-width:580px;margin:0 auto 60px;">
+      <div class="section-label">Pricing</div>
+      <h2>Simple, <span class="text-gradient">Transparent</span> Pricing</h2>
+      <p style="margin-top:16px;">Start free. Upgrade when you're ready to unlock the full experience.</p>
+      <div style="display:flex;align-items:center;gap:12px;justify-content:center;margin-top:24px;">
+        <span style="font-size:0.85rem;color:var(--text-secondary);">Monthly</span>
+        <div class="toggle on" id="billingToggle" onclick="toggleBilling()" style="cursor:pointer;"></div>
+        <span style="font-size:0.85rem;color:var(--text-secondary);">Annual <span style="color:var(--success);font-weight:700;">Save 40%</span></span>
+      </div>
+    </div>
+    <div class="pricing-grid" id="pricingGrid"></div>
+    <p style="text-align:center;color:var(--text-muted);font-size:0.82rem;margin-top:32px;">All prices in USD. Indian users: Plans start from ₹299/month. 7-day money-back guarantee on paid plans.</p>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="section" id="faq">
+  <div class="container" style="max-width:760px;">
+    <div style="text-align:center;margin-bottom:60px;">
+      <div class="section-label">FAQ</div>
+      <h2>Frequently Asked <span class="text-gradient">Questions</span></h2>
+    </div>
+    <div id="faqList"></div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section style="padding:100px 0;background:linear-gradient(135deg,rgba(99,102,241,0.15),rgba(139,92,246,0.1));border-top:1px solid var(--border);">
+  <div class="container" style="text-align:center;">
+    <div style="font-size:3.5rem;margin-bottom:20px;">⚡</div>
+    <h2 style="max-width:600px;margin:0 auto 20px;">Ready to Start Your <span class="text-gradient">Transformation?</span></h2>
+    <p style="color:var(--text-secondary);max-width:480px;margin:0 auto 40px;font-size:1.05rem;line-height:1.8;">Join thousands of people who've already changed their bodies and lives with TransformX AI. It's completely free to start.</p>
+    <div style="display:flex;justify-content:center;gap:16px;flex-wrap:wrap;">
+      <a href="auth.html?mode=signup" class="btn btn-primary btn-xl animate-glow">🚀 Start Free Today</a>
+      <a href="auth.html" class="btn btn-secondary btn-xl">Log In</a>
+    </div>
+    <p style="font-size:0.8rem;color:var(--text-muted);margin-top:20px;">No credit card required. Free forever plan available.</p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer style="background:var(--bg-secondary);border-top:1px solid var(--border);padding:60px 0 32px;">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+          <div style="width:32px;height:32px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:7px;display:flex;align-items:center;justify-content:center;">⚡</div>
+          <span style="font-weight:800;">TransformX AI</span>
+        </div>
+        <p style="font-size:0.85rem;line-height:1.7;max-width:260px;">Premium AI fitness platform. Transform your body with science-backed, personalized coaching.</p>
+        <div style="display:flex;gap:12px;margin-top:20px;">
+          <a href="#" style="color:var(--text-muted);font-size:1.2rem;transition:color 0.2s;" onmouseover="this.style.color='#818cf8'" onmouseout="this.style.color=''">𝕏</a>
+          <a href="#" style="color:var(--text-muted);font-size:1.2rem;transition:color 0.2s;" onmouseover="this.style.color='#818cf8'" onmouseout="this.style.color=''">in</a>
+          <a href="#" style="color:var(--text-muted);font-size:1.2rem;transition:color 0.2s;" onmouseover="this.style.color='#818cf8'" onmouseout="this.style.color=''">📷</a>
+        </div>
+      </div>
+      <div>
+        <h4 style="margin-bottom:16px;">Product</h4>
+        <a href="#features" class="footer-link">Features</a>
+        <a href="#pricing" class="footer-link">Pricing</a>
+        <a href="#testimonials" class="footer-link">Success Stories</a>
+        <a href="#faq" class="footer-link">FAQ</a>
+        <a href="auth.html?mode=signup" class="footer-link">Get Started Free</a>
+      </div>
+      <div>
+        <h4 style="margin-bottom:16px;">Platform</h4>
+        <a href="app.html" class="footer-link">Dashboard</a>
+        <a href="app.html#workout" class="footer-link">Workout Library</a>
+        <a href="app.html#nutrition" class="footer-link">Nutrition Tracker</a>
+        <a href="app.html#progress" class="footer-link">Progress Photos</a>
+        <a href="app.html#chat" class="footer-link">AI Coach Chat</a>
+      </div>
+      <div>
+        <h4 style="margin-bottom:16px;">Company</h4>
+        <a href="#" class="footer-link">About</a>
+        <a href="#" class="footer-link">Blog</a>
+        <a href="#" class="footer-link">Privacy Policy</a>
+        <a href="#" class="footer-link">Terms of Service</a>
+        <a href="#" class="footer-link">Contact Us</a>
+      </div>
+    </div>
+    <div style="border-top:1px solid var(--border);margin-top:48px;padding-top:24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+      <p style="font-size:0.8rem;color:var(--text-muted);">© 2026 TransformX AI. All rights reserved. Built with ❤️ for India and the world.</p>
+      <p style="font-size:0.8rem;color:var(--text-muted);">Evidence-based. No bro-science. No fake claims.</p>
+    </div>
+  </div>
+</footer>
+
+<script src="js/data.js"></script>
+<script src="js/utils.js"></script>
+<script>
+  // ===== LANDING PAGE SCRIPT =====
+
+  let annualBilling = true;
+
+  // Features data
+  const features = [
+    { icon: '🤖', color: 'rgba(99,102,241,0.15)', title: 'AI Transformation Plan', desc: 'GPT-4o generates your fully personalized 1-year roadmap, 90-day plan, weekly splits, and daily workouts based on your exact body, goals, and lifestyle.' },
+    { icon: '🥗', color: 'rgba(16,185,129,0.15)', title: 'Indian Diet Plans', desc: 'Complete meal plans using dal, roti, paneer, sabzi, and Indian staples. Database of 500+ Indian foods. Hit your exact protein, carbs, and fat targets.' },
+    { icon: '💪', color: 'rgba(139,92,246,0.15)', title: 'Smart Workout Logger', desc: 'Log sets, reps, weight with auto-calculated volume. Personal records tracked with celebrations. Progressive overload suggestions built-in.' },
+    { icon: '📊', color: 'rgba(59,130,246,0.15)', title: 'Progress Analytics', desc: 'Beautiful charts for weight, body fat, measurements, strength. Progress photos timeline. Weekly and monthly AI analysis reports.' },
+    { icon: '🏆', color: 'rgba(245,158,11,0.15)', title: 'Gamification & XP', desc: 'Earn XP for every action. Level up from Beginner to TransformX Pro. Unlock 20+ achievements and badges. Daily and weekly missions.' },
+    { icon: '💬', color: 'rgba(6,182,212,0.15)', title: 'AI Chat Coach', desc: 'Ask anything — nutrition, workouts, recovery, mindset. The AI knows your full profile, history, and goals. Context-aware, memory-enabled coaching.' },
+    { icon: '📅', color: 'rgba(239,68,68,0.15)', title: 'Full Calendar', desc: 'Workout calendar, meal scheduling, measurement tracking, and progress photo calendar. Never miss a session with smart reminders.' },
+    { icon: '📔', color: 'rgba(249,115,22,0.15)', title: 'Journal & Notes', desc: 'Rich daily journal with mood tracking, tags, and auto-save. Markdown support. Full-text search across all entries.' },
+    { icon: '📏', color: 'rgba(236,72,153,0.15)', title: '14-Point Measurements', desc: 'Track weight, body fat, BMI, waist, chest, arms, legs, neck, wrists, and more. Historical graphs show your exact body changes over time.' },
+    { icon: '💤', color: 'rgba(99,102,241,0.15)', title: 'Sleep & Lifestyle', desc: 'Track sleep quality, stress levels, mood. Personalized morning and night routines. Habit tracking system with streak rewards.' },
+    { icon: '📄', color: 'rgba(16,185,129,0.15)', title: 'PDF & CSV Export', desc: 'Export your workout history, nutrition logs, measurements, and AI plans as PDF, CSV, or Excel. Your data is always yours.' },
+    { icon: '🔒', color: 'rgba(245,158,11,0.15)', title: 'Private & Secure', desc: 'All your data is stored locally or encrypted. No data selling. GDPR compliant. You own your transformation data.' },
+  ];
+
+  const howSteps = [
+    { num: '1', title: 'Create Your Profile', desc: 'Complete our detailed onboarding wizard covering your body stats, medical history, goals, lifestyle, food preferences, and budget. Takes 5-10 minutes.', icon: '📋' },
+    { num: '2', title: 'AI Generates Your Plan', desc: 'Our AI engine processes your data and generates a complete transformation plan: 1-year roadmap, workout splits, meal plans, supplement guidance, and daily habits.', icon: '🤖' },
+    { num: '3', title: 'Execute Daily', desc: 'Follow your personalized dashboard. Log workouts in real-time, track every meal, hit your water goals, earn XP, and maintain your streak.', icon: '⚡' },
+    { num: '4', title: 'Track & Adapt', desc: 'Log weekly measurements and progress photos. The AI reviews your progress and adapts your plan. Never plateau again.', icon: '📈' },
+  ];
+
+  const pricingPlans = [
+    {
+      name: 'Free', monthlyPrice: 0, annualPrice: 0, desc: 'Perfect to start your journey',
+      features: ['Basic workout tracker', '100 foods in database', '7-day streak tracking', 'Basic progress charts', '1 AI chat message/day', 'Journal (30 entries)'],
+      cta: 'Start Free', btnClass: 'btn-secondary', popular: false
+    },
+    {
+      name: 'Pro', monthlyPrice: 9.99, annualPrice: 5.99, desc: 'The complete transformation package',
+      features: ['Everything in Free', 'AI-generated custom plans', '500+ food database (Indian)', 'Unlimited AI chat', 'Progress photos (unlimited)', 'PDF export', 'All 20+ achievements', 'Priority support'],
+      cta: 'Start 7-Day Trial', btnClass: 'btn-primary', popular: true
+    },
+    {
+      name: 'Elite', monthlyPrice: 24.99, annualPrice: 14.99, desc: 'For serious transformers',
+      features: ['Everything in Pro', 'Monthly 1:1 AI deep-dive', 'Custom supplement stack', 'Blood work interpretation', 'Posture & movement analysis', 'Voice & facial coaching', 'Priority AI responses', 'White-glove onboarding'],
+      cta: 'Go Elite', btnClass: 'btn-secondary', popular: false
+    },
+  ];
+
+  // Render features
+  document.getElementById('featuresGrid').innerHTML = features.map((f, i) => `
+    <div class="feature-card animate-fade-in" style="animation-delay:${i * 0.05}s">
+      <div class="feature-icon" style="background:${f.color}">${f.icon}</div>
+      <h3>${f.title}</h3>
+      <p style="margin-top:8px;font-size:0.88rem;line-height:1.7;">${f.desc}</p>
+    </div>
+  `).join('');
+
+  // Render how steps
+  document.getElementById('howSteps').innerHTML = howSteps.map(s => `
+    <div class="how-step">
+      <div class="how-step-num">${s.num}</div>
+      <div>
+        <h3 style="margin-bottom:6px;">${s.icon} ${s.title}</h3>
+        <p style="font-size:0.88rem;line-height:1.7;">${s.desc}</p>
+      </div>
+    </div>
+  `).join('');
+
+  // Render testimonials
+  const testimonials = TX_DATA.testimonials;
+  document.getElementById('testimonialsGrid').innerHTML = testimonials.map(t => `
+    <div class="testimonial-card">
+      <div class="testimonial-stars">★★★★★</div>
+      <p class="testimonial-text">"${t.text}"</p>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div class="avatar">${t.avatar}</div>
+        <div>
+          <div style="font-weight:700;font-size:0.9rem;">${t.name}</div>
+          <div style="font-size:0.78rem;color:var(--text-muted);">${t.city} • ${t.result}</div>
+        </div>
+        <div class="badge badge-primary ml-auto">${t.goal}</div>
+      </div>
+    </div>
+  `).join('');
+
+  // Render pricing
+  function renderPricing() {
+    document.getElementById('pricingGrid').innerHTML = pricingPlans.map(p => `
+      <div class="pricing-card ${p.popular ? 'popular' : ''}">
+        <div style="margin-bottom:8px;font-size:0.8rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">${p.name}</div>
+        <div class="pricing-price">
+          ${p.monthlyPrice === 0 ? 'Free' : `$${annualBilling ? p.annualPrice : p.monthlyPrice}`}
+          ${p.monthlyPrice > 0 ? `<span style="font-size:1rem;font-weight:400;color:var(--text-muted);">/mo</span>` : ''}
+        </div>
+        ${annualBilling && p.annualPrice > 0 ? `<div style="font-size:0.78rem;color:var(--text-muted);margin-top:4px;">Billed annually · Save ${Math.round((1 - p.annualPrice/p.monthlyPrice)*100)}%</div>` : ''}
+        <p style="font-size:0.85rem;margin:12px 0 20px;">${p.desc}</p>
+        <a href="auth.html?mode=signup&plan=${p.name.toLowerCase()}" class="btn ${p.btnClass} btn-full">${p.cta}</a>
+        <ul class="pricing-features">
+          ${p.features.map(f => `<li>${f}</li>`).join('')}
+        </ul>
+      </div>
+    `).join('');
+  }
+  renderPricing();
+
+  function toggleBilling() {
+    annualBilling = !annualBilling;
+    document.getElementById('billingToggle').className = `toggle ${annualBilling ? 'on' : ''}`;
+    renderPricing();
+  }
+
+  // Render FAQ
+  const faqs = TX_DATA.faqs;
+  document.getElementById('faqList').innerHTML = faqs.map((f, i) => `
+    <div class="faq-item" id="faq_${i}">
+      <div class="faq-question" onclick="toggleFaq(${i})">
+        <span>${f.q}</span>
+        <span class="faq-chevron">▾</span>
+      </div>
+      <div class="faq-answer" id="faq_ans_${i}">
+        <p style="font-size:0.9rem;line-height:1.8;">${f.a}</p>
+      </div>
+    </div>
+  `).join('');
+
+  function toggleFaq(i) {
+    const item = document.getElementById(`faq_${i}`);
+    const ans = document.getElementById(`faq_ans_${i}`);
+    const isOpen = ans.classList.contains('open');
+    document.querySelectorAll('.faq-answer.open').forEach(a => a.classList.remove('open'));
+    document.querySelectorAll('.faq-item.open').forEach(a => a.classList.remove('open'));
+    if (!isOpen) { ans.classList.add('open'); item.classList.add('open'); }
+  }
+
+  // Navbar scroll
+  window.addEventListener('scroll', () => {
+    const nav = document.getElementById('mainNav');
+    nav.classList.toggle('scrolled', window.scrollY > 20);
+  });
+
+  // Animated counters
+  function animateCounter(id, target, suffix = '') {
+    const el = document.getElementById(id);
+    if (!el) return;
+    let start = 0;
+    const duration = 2000;
+    const increment = target / (duration / 16);
+    const timer = setInterval(() => {
+      start += increment;
+      if (start >= target) { start = target; clearInterval(timer); }
+      el.textContent = Math.floor(start).toLocaleString('en-IN') + suffix;
+    }, 16);
+  }
+
+  // Intersection observer for counters
+  const counterObserver = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        animateCounter('counterUsers', 12847);
+        animateCounter('counterWorkouts', 284920);
+        animateCounter('counterTransforms', 4293);
+        counterObserver.disconnect();
+      }
+    });
+  });
+  counterObserver.observe(document.getElementById('counterUsers'));
+
+  // Theme toggle
+  function toggleTheme() {
+    const newTheme = TXUtils.theme.toggle();
+    document.getElementById('themeBtn').textContent = newTheme === 'dark' ? '🌙' : '☀️';
+  }
+
+  // Init
+  TXUtils.theme.apply();
+  const savedTheme = TXUtils.theme.get();
+  document.getElementById('themeBtn').textContent = savedTheme === 'dark' ? '🌙' : '☀️';
+
+  // If already logged in, add "Go to App" button
+  if (TXUtils.auth.isLoggedIn()) {
+    document.querySelectorAll('a[href="auth.html?mode=signup"]').forEach(btn => {
+      if (btn.textContent.includes('Start Free')) {
+        btn.href = 'app.html';
+        btn.textContent = '🚀 Go to Dashboard';
+      }
+    });
+  }
+</script>
+</body>
+</html>

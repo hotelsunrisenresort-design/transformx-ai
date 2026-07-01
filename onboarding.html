@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Setup Your Profile — TransformX AI</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <style>
+    .goal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+    .range-input { width: 100%; accent-color: var(--primary); cursor: pointer; }
+    .bmi-display { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+    .photo-preview { width: 100%; height: 100%; object-fit: cover; border-radius: var(--radius-sm); }
+    .complete-screen { text-align: center; padding: 20px 0; }
+    .complete-icon { font-size: 5rem; animation: bounceIn 0.8s ease; }
+    .ai-generating { display: flex; align-items: center; gap: 12px; background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.15); border-radius: var(--radius-sm); padding: 14px 16px; margin-top: 16px; }
+    .ai-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); animation: pulse-dot 1s infinite; }
+    .ai-dot:nth-child(2) { animation-delay: 0.2s; }
+    .ai-dot:nth-child(3) { animation-delay: 0.4s; }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="onboarding-header">
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div style="width:32px;height:32px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:1rem;">⚡</div>
+    <span style="font-weight:800;font-size:1rem;">Transform<span style="color:#818cf8;">X AI</span></span>
+  </div>
+  <div style="text-align:center;">
+    <div style="font-size:0.85rem;font-weight:600;" id="stepLabel">Step 1 of 10</div>
+    <div style="font-size:0.75rem;color:var(--text-muted);" id="stepTitle">Personal Information</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <span style="font-size:0.8rem;color:var(--text-muted);" id="autoSaveStatus">● Auto-saving</span>
+    <button onclick="TXUtils.auth.logout()" style="background:none;color:var(--text-muted);font-size:0.82rem;">Logout</button>
+  </div>
+</div>
+
+<!-- PROGRESS BAR -->
+<div style="background:var(--bg-secondary);padding:16px 40px;border-bottom:1px solid var(--border);">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+    <span style="font-size:0.8rem;font-weight:600;color:var(--text-secondary);" id="progressPct">0% complete</span>
+    <span style="font-size:0.78rem;color:var(--text-muted);">Your data is saved automatically</span>
+  </div>
+  <div style="display:flex;gap:4px;" id="stepDots"></div>
+</div>
+
+<!-- ONBOARDING BODY -->
+<div class="onboarding-body" id="onboardingBody">
+  <div class="onboarding-card" id="stepCard"></div>
+</div>
+
+<!-- FOOTER NAV -->
+<div class="onboarding-footer">
+  <button class="btn btn-ghost" id="prevBtn" onclick="prevStep()">← Previous</button>
+  <div style="display:flex;align-items:center;gap:16px;">
+    <span style="font-size:0.8rem;color:var(--text-muted);" id="footerStepInfo"></span>
+    <button class="btn btn-primary btn-lg" id="nextBtn" onclick="nextStep()">Continue →</button>
+  </div>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/utils.js"></script>
+<script>
+// ===== ONBOARDING STATE =====
+let currentStep = 0;
+const TOTAL_STEPS = 10;
+let profile = {};
+
+// Redirect if not logged in
+if (!TXUtils.auth.isLoggedIn()) { window.location.href = 'auth.html'; }
+// If already complete, go to app
+if (TXUtils.auth.onboardingComplete()) { window.location.href = 'app.html'; }
+
+// Load saved progress
+function loadProgress() {
+  const saved = TXUtils.storage.get('onboarding_progress');
+  if (saved) {
+    profile = saved.profile || {};
+    currentStep = saved.step || 0;
+    if (currentStep >= TOTAL_STEPS) { currentStep = TOTAL_STEPS - 1; }
+  }
+  const user = TXUtils.auth.getUser();
+  if (user) {
+    profile.firstName = profile.firstName || user.firstName || '';
+    profile.lastName = profile.lastName || user.lastName || '';
+    profile.email = profile.email || user.email || '';
+  }
+}
+
+function saveProgress() {
+  TXUtils.storage.set('onboarding_progress', { profile, step: currentStep, updated: Date.now() });
+  const status = document.getElementById('autoSaveStatus');
+  if (status) {
+    status.textContent = '✓ Saved';
+    status.style.color = 'var(--success)';
+    setTimeout(() => { status.textContent = '● Auto-saving'; status.style.color = ''; }, 2000);
+  }
+}
+
+// ===== STEP DEFINITIONS =====
+const steps = [
+  {
+    title: 'Personal Information',
+    subtitle: "Let's start with the basics. This helps us personalize your experience.",
+    render: () => `
+      <div class="onboarding-step-title">👤 Tell us about yourself</div>
+      <div class="onboarding-step-subtitle">Basic info for your personalized plan.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div class="input-group">
+          <label class="input-label">First Name *</label>
+          <input type="text" class="input" id="f_firstName" placeholder="Arjun" value="${profile.firstName || ''}" oninput="saveField('firstName', this.value)">
+        </div>
+        <div class="input-group">
+          <label class="input-label">Last Name *</label>
+          <input type="text" class="input" id="f_lastName" placeholder="Sharma" value="${profile.lastName || ''}" oninput="saveField('lastName', this.value)">
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:16px;">
+        <div class="input-group">
+          <label class="input-label">Date of Birth *</label>
+          <input type="date" class="input" id="f_dob" value="${profile.dob || ''}" oninput="saveField('dob', this.value); updateAge()">
+        </div>
+        <div class="input-group">
+          <label class="input-label">Age</label>
+          <input type="number" class="input" id="f_age" value="${profile.age || ''}" placeholder="25" oninput="saveField('age', this.value)">
+        </div>
+        <div class="input-group">
+          <label class="input-label">Gender *</label>
+          <select class="select" id="f_gender" onchange="saveField('gender', this.value)">
+            <option value="">Select...</option>
+            <option value="Male" ${profile.gender==='Male'?'selected':''}>Male</option>
+            <option value="Female" ${profile.gender==='Female'?'selected':''}>Female</option>
+            <option value="Other" ${profile.gender==='Other'?'selected':''}>Other / Prefer not to say</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;">
+        <div class="input-group">
+          <label class="input-label">Occupation</label>
+          <select class="select" id="f_occupation" onchange="saveField('occupation', this.value)">
+            <option value="">Select...</option>
+            <option value="Student" ${profile.occupation==='Student'?'selected':''}>Student</option>
+            <option value="Desk Job (IT/Office)" ${profile.occupation==='Desk Job (IT/Office)'?'selected':''}>Desk Job (IT/Office)</option>
+            <option value="Physical Labor" ${profile.occupation==='Physical Labor'?'selected':''}>Physical Labor</option>
+            <option value="Healthcare" ${profile.occupation==='Healthcare'?'selected':''}>Healthcare</option>
+            <option value="Teacher/Professor" ${profile.occupation==='Teacher/Professor'?'selected':''}>Teacher/Professor</option>
+            <option value="Business/Entrepreneur" ${profile.occupation==='Business/Entrepreneur'?'selected':''}>Business/Entrepreneur</option>
+            <option value="Other" ${profile.occupation==='Other'?'selected':''}>Other</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label class="input-label">Work Hours/Day</label>
+          <select class="select" id="f_workHours" onchange="saveField('workHours', this.value)">
+            <option value="">Select...</option>
+            <option value="Less than 6" ${profile.workHours==='Less than 6'?'selected':''}>Less than 6 hours</option>
+            <option value="6-8" ${profile.workHours==='6-8'?'selected':''}>6-8 hours</option>
+            <option value="8-10" ${profile.workHours==='8-10'?'selected':''}>8-10 hours</option>
+            <option value="10-12" ${profile.workHours==='10-12'?'selected':''}>10-12 hours</option>
+            <option value="12+" ${profile.workHours==='12+'?'selected':''}>12+ hours</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px;">
+        <div class="input-group">
+          <label class="input-label">Average Sleep Hours</label>
+          <select class="select" id="f_sleepHours" onchange="saveField('sleepHours', this.value)">
+            <option value="">Select...</option>
+            <option value="Less than 5" ${profile.sleepHours==='Less than 5'?'selected':''}>Less than 5 hours</option>
+            <option value="5-6" ${profile.sleepHours==='5-6'?'selected':''}>5-6 hours</option>
+            <option value="6-7" ${profile.sleepHours==='6-7'?'selected':''}>6-7 hours</option>
+            <option value="7-8" ${profile.sleepHours==='7-8'?'selected':''}>7-8 hours (Ideal)</option>
+            <option value="8+" ${profile.sleepHours==='8+'?'selected':''}>8+ hours</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label class="input-label">Stress Level</label>
+          <select class="select" id="f_stressLevel" onchange="saveField('stressLevel', this.value)">
+            <option value="">Select...</option>
+            <option value="Low" ${profile.stressLevel==='Low'?'selected':''}>Low — Life is good 😊</option>
+            <option value="Moderate" ${profile.stressLevel==='Moderate'?'selected':''}>Moderate — Some pressure</option>
+            <option value="High" ${profile.stressLevel==='High'?'selected':''}>High — Pretty stressed</option>
+            <option value="Very High" ${profile.stressLevel==='Very High'?'selected':''}>Very High — Constant stress</option>
+          </select>
+        </div>
+      </div>
+    `,
+    validate: () => {
+      if (!profile.firstName) { TXUtils.toast.error('Please enter your first name'); return false; }
+      if (!profile.gender) { TXUtils.toast.error('Please select your gender'); return false; }
+      if (!profile.age && !profile.dob) { TXUtils.toast.error('Please enter your age or date of birth'); return false; }
+      return true;
+    }
+  },
+  {
+    title: 'Body Metrics',
+    subtitle: 'Your physical measurements help calculate your exact calorie and macro needs.',
+    render: () => `
+      <div class="onboarding-step-title">📏 Body Measurements</div>
+      <div class="onboarding-step-subtitle">Used to calculate BMI, BMR, TDEE and your macro targets.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div class="input-group">
+          <label class="input-label">Height (cm) *</label>
+          <input type="number" class="input" id="f_height" placeholder="175" value="${profile.height || ''}" oninput="saveField('height', parseFloat(this.value)); updateBMI()">
+        </div>
+        <div class="input-group">
+          <label class="input-label">Current Weight (kg) *</label>
+          <input type="number" class="input" id="f_weight" placeholder="75" value="${profile.weight || ''}" step="0.1" oninput="saveField('weight', parseFloat(this.value)); updateBMI()">
+        </div>
+        <div class="input-group">
+          <label class="input-label">Target Weight (kg) *</label>
+          <input type="number" class="input" id="f_targetWeight" placeholder="70" value="${profile.targetWeight || ''}" step="0.1" oninput="saveField('targetWeight', parseFloat(this.value))">
+        </div>
+        <div class="input-group">
+          <label class="input-label">Body Fat % (estimate)</label>
+          <select class="select" id="f_bodyFat" onchange="saveField('bodyFat', this.value)">
+            <option value="">Not sure</option>
+            <option value="8-12" ${profile.bodyFat==='8-12'?'selected':''}>8-12% (Very lean, visible abs)</option>
+            <option value="13-17" ${profile.bodyFat==='13-17'?'selected':''}>13-17% (Lean, some abs)</option>
+            <option value="18-22" ${profile.bodyFat==='18-22'?'selected':''}>18-22% (Average, some fat)</option>
+            <option value="23-27" ${profile.bodyFat==='23-27'?'selected':''}>23-27% (Above average)</option>
+            <option value="28-32" ${profile.bodyFat==='28-32'?'selected':''}>28-32% (Overweight)</option>
+            <option value="33+" ${profile.bodyFat==='33+'?'selected':''}>33%+ (Obese range)</option>
+          </select>
+        </div>
+      </div>
+      <div id="bmiDisplay" style="margin-top:12px;display:none;" class="bmi-display">
+        <div>
+          <div style="font-size:0.75rem;color:var(--text-muted);">Your BMI</div>
+          <div style="font-size:1.6rem;font-weight:800;" id="bmiVal">—</div>
+        </div>
+        <div id="bmiCategory" style="font-weight:600;"></div>
+      </div>
+      <div style="margin-top:24px;">
+        <div style="font-weight:600;margin-bottom:12px;">Activity Level *</div>
+        <div style="display:flex;flex-direction:column;gap:8px;" id="activityOptions">
+          ${['Sedentary (desk job, no exercise)', 'Lightly Active (1-3 days/week)', 'Moderately Active (3-5 days/week)', 'Very Active (6-7 days/week)', 'Extremely Active (athlete, physical job)'].map(a => `
+            <div class="option-btn" onclick="selectActivity('${a}')" id="act_${a.split(' ')[0]}" style="flex-direction:row;justify-content:flex-start;gap:12px;${profile.activityLevel===a?'border-color:var(--primary);background:rgba(99,102,241,0.12);color:var(--primary-light);':''}">
+              <span>${{Sedentary:'🪑',Lightly:'🚶',Moderately:'🏃',Very:'🏋️',Extremely:'⚡'}[a.split(' ')[0]] || '💪'}</span>
+              <span>${a}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `,
+    validate: () => {
+      if (!profile.height) { TXUtils.toast.error('Please enter your height'); return false; }
+      if (!profile.weight) { TXUtils.toast.error('Please enter your weight'); return false; }
+      if (!profile.targetWeight) { TXUtils.toast.error('Please enter your target weight'); return false; }
+      if (!profile.activityLevel) { TXUtils.toast.error('Please select your activity level'); return false; }
+      return true;
+    }
+  },
+  {
+    title: 'Body Measurements',
+    subtitle: 'Optional but powerful — tracking these helps show progress even when the scale doesnt move.',
+    render: () => `
+      <div class="onboarding-step-title">📐 Detailed Measurements</div>
+      <div class="onboarding-step-subtitle">All measurements in centimeters. Take them in the morning, relaxed.</div>
+      <div class="measurements-grid">
+        ${TX_DATA.bodyParts.filter(b => b.key !== 'weight' && b.key !== 'bodyfat').map(bp => `
+          <div class="input-group">
+            <label class="input-label">${bp.icon} ${bp.label} (cm)</label>
+            <input type="number" class="input" id="f_${bp.key}" placeholder="—" step="0.1" value="${profile[bp.key] || ''}" oninput="saveField('${bp.key}', parseFloat(this.value))">
+          </div>
+        `).join('')}
+      </div>
+      <div style="margin-top:20px;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.15);border-radius:var(--radius-sm);padding:14px 16px;">
+        <div style="font-weight:600;font-size:0.85rem;color:var(--info);margin-bottom:6px;">📋 How to measure correctly:</div>
+        <ul style="font-size:0.82rem;color:var(--text-secondary);line-height:1.8;padding-left:16px;list-style:disc;">
+          <li><strong>Waist:</strong> At navel level, relaxed (not sucked in)</li>
+          <li><strong>Chest:</strong> Around the fullest part</li>
+          <li><strong>Arms:</strong> Flexed bicep at widest point</li>
+          <li><strong>Hips:</strong> At the widest point</li>
+          <li><strong>Thigh:</strong> Midway between hip and knee</li>
+        </ul>
+      </div>
+    `,
+    validate: () => true // All optional
+  },
+  {
+    title: 'Medical History',
+    subtitle: 'This is confidential and helps the AI create a safe plan for you.',
+    render: () => `
+      <div class="onboarding-step-title">🏥 Health & Medical History</div>
+      <div class="onboarding-step-subtitle">All information is stored locally on your device. We never share it.</div>
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        <div class="input-group">
+          <label class="input-label">Medical Conditions (if any)</label>
+          <div class="goal-grid" style="grid-template-columns:repeat(auto-fill,minmax(130px,1fr));">
+            ${['None', 'Diabetes (Type 2)', 'Hypertension', 'PCOD/PCOS', 'Thyroid', 'Heart Condition', 'Asthma', 'Lower Back Pain', 'Knee Issues', 'Shoulder Injury', 'Anxiety/Depression', 'Other'].map(c => `
+              <div class="option-btn" onclick="toggleCondition('${c}')" id="cond_${c.replace(/\W/g,'')}" style="${(profile.conditions||[]).includes(c)?'border-color:var(--primary);background:rgba(99,102,241,0.12);color:var(--primary-light);':''}">${c}</div>
+            `).join('')}
+          </div>
+        </div>
+        <div class="input-group">
+          <label class="input-label">Injuries (if any)</label>
+          <textarea class="input" id="f_injuries" placeholder="e.g. Right knee ACL (2022), Lower back pain" style="height:80px;" oninput="saveField('injuries', this.value)">${profile.injuries || ''}</textarea>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <div class="input-group">
+            <label class="input-label">Allergies</label>
+            <input type="text" class="input" id="f_allergies" placeholder="e.g. Lactose, Gluten, Nuts" value="${profile.allergies || ''}" oninput="saveField('allergies', this.value)">
+          </div>
+          <div class="input-group">
+            <label class="input-label">Current Medications</label>
+            <input type="text" class="input" id="f_medications" placeholder="e.g. Metformin, Levothyroxine" value="${profile.medications || ''}" oninput="saveField('medications', this.value)">
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+          <div class="input-group">
+            <label class="input-label">Blood Pressure</label>
+            <select class="select" id="f_bloodPressure" onchange="saveField('bloodPressure', this.value)">
+              <option value="">Select</option>
+              <option value="Normal" ${profile.bloodPressure==='Normal'?'selected':''}>Normal</option>
+              <option value="High" ${profile.bloodPressure==='High'?'selected':''}>High (Hypertension)</option>
+              <option value="Low" ${profile.bloodPressure==='Low'?'selected':''}>Low (Hypotension)</option>
+              <option value="Unknown" ${profile.bloodPressure==='Unknown'?'selected':''}>Don't Know</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label class="input-label">Smoking</label>
+            <select class="select" id="f_smoking" onchange="saveField('smoking', this.value)">
+              <option value="">Select</option>
+              <option value="Never" ${profile.smoking==='Never'?'selected':''}>Never</option>
+              <option value="Quit" ${profile.smoking==='Quit'?'selected':''}>Quit</option>
+              <option value="Occasionally" ${profile.smoking==='Occasionally'?'selected':''}>Occasionally</option>
+              <option value="Daily" ${profile.smoking==='Daily'?'selected':''}>Daily</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label class="input-label">Alcohol</label>
+            <select class="select" id="f_alcohol" onchange="saveField('alcohol', this.value)">
+              <option value="">Select</option>
+              <option value="Never" ${profile.alcohol==='Never'?'selected':''}>Never</option>
+              <option value="Rarely" ${profile.alcohol==='Rarely'?'selected':''}>Rarely</option>
+              <option value="Occasionally" ${profile.alcohol==='Occasionally'?'selected':''}>Occasionally</option>
+              <option value="Regularly" ${profile.alcohol==='Regularly'?'selected':''}>Regularly</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    `,
+    validate: () => true
+  },
+  {
+    title: 'Fitness Level & Goals',
+    subtitle: 'What are you trying to achieve? You can select multiple goals.',
+    render: () => `
+      <div class="onboarding-step-title">🎯 Your Fitness Goals</div>
+      <div class="onboarding-step-subtitle">Select all that apply. The AI will prioritize based on your selection.</div>
+      <div style="margin-bottom:20px;">
+        <div style="font-weight:600;margin-bottom:10px;">Current Fitness Level *</div>
+        <div style="display:flex;gap:10px;">
+          ${['Beginner', 'Intermediate', 'Advanced'].map(l => `
+            <div class="option-btn" onclick="selectLevel('${l}')" id="lvl_${l}" style="flex:1;${profile.fitnessLevel===l?'border-color:var(--primary);background:rgba(99,102,241,0.12);color:var(--primary-light);':''}">
+              <span class="option-icon">${{Beginner:'🌱',Intermediate:'🔥',Advanced:'⚡'}[l]}</span>
+              ${l}
+            </div>
+          `).join('')}
+        </div>
+      </div>
+      <div style="font-weight:600;margin-bottom:10px;">Primary Goals * (select all that apply)</div>
+      <div class="goal-grid">
+        ${[
+          {icon:'🔥',label:'Fat Loss'}, {icon:'⚖️',label:'Weight Loss'}, {icon:'💪',label:'Muscle Gain'},
+          {icon:'🔄',label:'Body Recomposition'}, {icon:'🏃',label:'Athletic Performance'}, {icon:'🏋️',label:'Powerlifting'},
+          {icon:'🌟',label:'Bodybuilding'}, {icon:'🤸',label:'Calisthenics'}, {icon:'🏅',label:'Marathon'},
+          {icon:'🧘',label:'Mobility'}, {icon:'🧍',label:'Posture'}, {icon:'🌀',label:'Flexibility'},
+          {icon:'❤️',label:'General Health'}, {icon:'🏆',label:'David Laid Physique'}, {icon:'✨',label:'Aesthetic Physique'},
+          {icon:'🪨',label:'Jawline'}, {icon:'📸',label:'Face Fat Reduction'}, {icon:'💆',label:'Skin Improvement'},
+          {icon:'💇',label:'Hair Improvement'}, {icon:'🎙️',label:'Voice Improvement'}
+        ].map(g => `
+          <div class="option-btn" onclick="toggleGoal('${g.label}')" id="goal_${g.label.replace(/\s/g,'_')}" style="${(profile.goals||[]).includes(g.label)?'border-color:var(--primary);background:rgba(99,102,241,0.12);color:var(--primary-light);':''}">
+            <span class="option-icon">${g.icon}</span>${g.label}
+          </div>
+        `).join('')}
+      </div>
+    `,
+    validate: () => {
+      if (!profile.fitnessLevel) { TXUtils.toast.error('Please select your fitness level'); return false; }
+      if (!profile.goals || profile.goals.length === 0) { TXUtils.toast.error('Please select at least one goal'); return false; }
+      return true;
+    }
+  },
+  {
+    title: 'Food & Nutrition Preferences',
+    subtitle: 'Your meal plan will be built around what you enjoy eating.',
+    render: () => `
+      <div class="onboarding-step-title">🍽️ Food Preferences</div>
+      <div class="onboarding-step-subtitle">Be honest — a plan you enjoy is a plan you stick to.</div>
+      <div style="margin-bottom:20px;">
+        <div style="font-weight:600;margin-bottom:10px;">Diet Type *</div>
+        <div class="goal-grid" style="grid-template-columns:repeat(auto-fill,minmax(130px,1fr));">
+          ${[
+            {icon:'🐔',label:'Non-Vegetarian'}, {icon:'🥚',label:'Eggetarian'},
+            {icon:'🥗',label:'Vegetarian'}, {icon:'🌱',label:'Vegan'},
+            {icon:'🍛',label:'Indian'}, {icon:'🥓',label:'Keto'},
+            {icon:'🥙',label:'Low Carb'}, {icon:'💪',label:'High Protein'}
+          ].map(d => `
+            <div class="option-btn" onclick="selectDiet('${d.label}')" id="diet_${d.label.replace(/\s/g,'_')}" style="${profile.dietType===d.label?'border-color:var(--primary);background:rgba(99,102,241,0.12);color:var(--primary-light);':''}">
+              <span class="option-icon">${d.icon}</span>${d.label}
+            </div>
+          `).join('')}
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+        <div class="input-group">
+          <label class="input-label">Disliked Foods</label>
+          <input type="text" class="input" id="f_dislikedFoods" placeholder="e.g. Bitter gourd, Mushrooms" value="${profile.dislikedFoods || ''}" oninput="saveField('dislikedFoods', this.value)">
+        </div>
+        <div class="input-group">
+          <label class="input-label">Favorite Foods</label>
+          <input type="text" class="input" id="f_favoriteFoods" placeholder="e.g. Paneer, Eggs, Chicken" value="${profile.favoriteFoods || ''}" oninput="saveField('favoriteFoods', this.value)">
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+        <div class="input-group">
+          <label class="input-label">Monthly Food Budget</label>
+          <select class="select" id="f_foodBudget" onchange="saveField('foodBudget', this.value)">
+            <option value="">Select</option>
+            <option value="Under ₹2000" ${profile.foodBudget==='Under ₹2000'?'selected':''}>Under ₹2,000</option>
+            <option value="₹2000-4000" ${profile.foodBudget==='₹2000-4000'?'selected':''}>₹2,000-4,000</option>
+            <option value="₹4000-7000" ${profile.foodBudget==='₹4000-7000'?'selected':''}>₹4,000-7,000</option>
+            <option value="₹7000-12000" ${profile.foodBudget==='₹7000-12000'?'selected':''}>₹7,000-12,000</option>
+            <option value="₹12000+" ${profile.foodBudget==='₹12000+'?'selected':''}>₹12,000+</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label class="input-label">Supplement Budget</label>
+          <select class="select" id="f_suppBudget" onchange="saveField('suppBudget', this.value)">
+            <option value="">Select</option>
+            <option value="None" ${profile.suppBudget==='None'?'selected':''}>None</option>
+            <option value="Under ₹500" ${profile.suppBudget==='Under ₹500'?'selected':''}>Under ₹500</option>
+            <option value="₹500-1500" ${profile.suppBudget==='₹500-1500'?'selected':''}>₹500-1,500</option>
+            <option value="₹1500-3000" ${profile.suppBudget==='₹1500-3000'?'selected':''}>₹1,500-3,000</option>
+            <option value="₹3000+" ${profile.suppBudget==='₹3000+'?'selected':''}>₹3,000+</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label class="input-label">Gym/Equipment Budget</label>
+          <select class="select" id="f_gymBudget" onchange="saveField('gymBudget', this.value)">
+            <option value="">Select</option>
+            <option value="None (home only)" ${profile.gymBudget==='None (home only)'?'selected':''}>None (home only)</option>
+            <option value="Under ₹500" ${profile.gymBudget==='Under ₹500'?'selected':''}>Under ₹500</option>
+            <option value="₹500-1500" ${profile.gymBudget==='₹500-1500'?'selected':''}>₹500-1,500</option>
+            <option value="₹1500-3000" ${profile.gymBudget==='₹1500-3000'?'selected':''}>₹1,500-3,000</option>
+            <option value="₹3000+" ${profile.gymBudget==='₹3000+'?'selected':''}>₹3,000+</option>
+          </select>
+        </div>
+      </div>
+    `,
+    validate: () => {
+      if (!profile.dietType) { TXUtils.toast.error('Please select your diet type'); return false; }
+      return true;
+    }
+  },
+  {
+    title: 'Equipment & Schedule',
+    subtitle: "Your workout plan is built around what you have access to.",
+    render: () => `
+      <div class="onboarding-step-title">🏋️ Equipment & Schedule</div>
+      <div class="onboarding-step-subtitle">Be honest about what equipment you have — it determines your entire program.</div>
+      <div style="margin-bottom:20px;">
+        <div style="font-weight:600;margin-bottom:10px;">Available Equipment * (select all)</div>
+        <div class="goal-grid" style="grid-template-columns:repeat(auto-fill,minmax(140px,1fr));">
+          ${[
+            {icon:'🏠',label:'Home (Bodyweight)'}, {icon:'🏋️',label:'Full Gym'},
+            {icon:'🔘',label:'Dumbbells'}, {icon:'📏',label:'Barbell & Plates'},
+            {icon:'🔗',label:'Resistance Bands'}, {icon:'🚪',label:'Pull-up Bar'},
+            {icon:'⚙️',label:'Cable Machines'}, {icon:'🚴',label:'Cardio Equipment'},
+            {icon:'🤸',label:'Gymnastics Rings'}, {icon:'🧘',label:'Yoga Mat Only'}
+          ].map(e => `
+            <div class="option-btn" onclick="toggleEquipment('${e.label}')" id="equip_${e.label.replace(/\W/g,'_')}" style="${(profile.equipment||[]).includes(e.label)?'border-color:var(--primary);background:rgba(99,102,241,0.12);color:var(--primary-light);':''}">
+              <span class="option-icon">${e.icon}</span>${e.label}
+            </div>
+          `).join('')}
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+        <div class="input-group">
+          <label class="input-label">Workout Days Per Week *</label>
+          <select class="select" id="f_workoutDays" onchange="saveField('workoutDays', parseInt(this.value))">
+            <option value="">Select</option>
+            ${[1,2,3,4,5,6,7].map(d => `<option value="${d}" ${profile.workoutDays===d?'selected':''}>${d} day${d>1?'s':''}/week</option>`).join('')}
+          </select>
+        </div>
+        <div class="input-group">
+          <label class="input-label">Session Duration</label>
+          <select class="select" id="f_sessionDuration" onchange="saveField('sessionDuration', this.value)">
+            <option value="">Select</option>
+            <option value="30 min" ${profile.sessionDuration==='30 min'?'selected':''}>30 minutes</option>
+            <option value="45 min" ${profile.sessionDuration==='45 min'?'selected':''}>45 minutes</option>
+            <option value="60 min" ${profile.sessionDuration==='60 min'?'selected':''}>1 hour</option>
+            <option value="75 min" ${profile.sessionDuration==='75 min'?'selected':''}>75 minutes</option>
+            <option value="90 min" ${profile.sessionDuration==='90 min'?'selected':''}>90 minutes</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-bottom:16px;">
+        <div style="font-weight:600;margin-bottom:10px;">Preferred Workout Time</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          ${[
+            {icon:'🌅',label:'Early Morning (5-7 AM)'}, {icon:'☀️',label:'Morning (7-10 AM)'},
+            {icon:'🌤️',label:'Afternoon (12-3 PM)'}, {icon:'🌆',label:'Evening (5-8 PM)'},
+            {icon:'🌙',label:'Night (8-11 PM)'}
+          ].map(t => `
+            <div class="option-btn" onclick="selectWorkoutTime('${t.label}')" id="wtime_${t.icon}" style="${profile.workoutTime===t.label?'border-color:var(--primary);background:rgba(99,102,241,0.12);color:var(--primary-light);':''}">
+              <span class="option-icon">${t.icon}</span><span style="font-size:0.78rem;">${t.label}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `,
+    validate: () => {
+      if (!profile.equipment || profile.equipment.length === 0) { TXUtils.toast.error('Please select your available equipment'); return false; }
+      if (!profile.workoutDays) { TXUtils.toast.error('Please select how many days per week you can train'); return false; }
+      return true;
+    }
+  },
+  {
+    title: 'Location & Preferences',
+    subtitle: 'Helps us localize your plan and set up timezone-aware reminders.',
+    render: () => `
+      <div class="onboarding-step-title">🌍 Location & Settings</div>
+      <div class="onboarding-step-subtitle">Used for timezone-aware workout reminders and local food recommendations.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div class="input-group">
+          <label class="input-label">Country</label>
+          <select class="select" id="f_country" onchange="saveField('country', this.value)">
+            <option value="">Select country</option>
+            <option value="India" ${profile.country==='India'?'selected':''}>🇮🇳 India</option>
+            <option value="USA" ${profile.country==='USA'?'selected':''}>🇺🇸 United States</option>
+            <option value="UK" ${profile.country==='UK'?'selected':''}>🇬🇧 United Kingdom</option>
+            <option value="UAE" ${profile.country==='UAE'?'selected':''}>🇦🇪 UAE</option>
+            <option value="Canada" ${profile.country==='Canada'?'selected':''}>🇨🇦 Canada</option>
+            <option value="Australia" ${profile.country==='Australia'?'selected':''}>🇦🇺 Australia</option>
+            <option value="Singapore" ${profile.country==='Singapore'?'selected':''}>🇸🇬 Singapore</option>
+            <option value="Other" ${profile.country==='Other'?'selected':''}>Other</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label class="input-label">State / City</label>
+          <input type="text" class="input" id="f_city" placeholder="e.g. Mumbai, Maharashtra" value="${profile.city || ''}" oninput="saveField('city', this.value)">
+        </div>
+        <div class="input-group">
+          <label class="input-label">Timezone</label>
+          <select class="select" id="f_timezone" onchange="saveField('timezone', this.value)">
+            <option value="IST">India Standard Time (IST, UTC+5:30)</option>
+            <option value="EST" ${profile.timezone==='EST'?'selected':''}>Eastern Time (EST, UTC-5)</option>
+            <option value="PST" ${profile.timezone==='PST'?'selected':''}>Pacific Time (PST, UTC-8)</option>
+            <option value="GMT" ${profile.timezone==='GMT'?'selected':''}>Greenwich Mean Time (GMT)</option>
+            <option value="GST" ${profile.timezone==='GST'?'selected':''}>Gulf Standard Time (GST, UTC+4)</option>
+            <option value="AEST" ${profile.timezone==='AEST'?'selected':''}>Australian Eastern (AEST, UTC+10)</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label class="input-label">Language</label>
+          <select class="select" id="f_language" onchange="saveField('language', this.value)">
+            <option value="English" ${profile.language==='English'?'selected':''}>English</option>
+            <option value="Hindi" ${profile.language==='Hindi'?'selected':''}>हिंदी (Hindi)</option>
+            <option value="Tamil" ${profile.language==='Tamil'?'selected':''}>தமிழ் (Tamil)</option>
+            <option value="Telugu" ${profile.language==='Telugu'?'selected':''}>తెలుగు (Telugu)</option>
+            <option value="Kannada" ${profile.language==='Kannada'?'selected':''}>ಕನ್ನಡ (Kannada)</option>
+            <option value="Malayalam" ${profile.language==='Malayalam'?'selected':''}>മലയാളം (Malayalam)</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-top:20px;border-top:1px solid var(--border);padding-top:20px;">
+        <div style="font-weight:600;margin-bottom:12px;">🚨 Emergency Contact</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="input-group">
+            <label class="input-label">Contact Name</label>
+            <input type="text" class="input" id="f_emergencyName" placeholder="Family member name" value="${profile.emergencyName || ''}" oninput="saveField('emergencyName', this.value)">
+          </div>
+          <div class="input-group">
+            <label class="input-label">Contact Phone</label>
+            <input type="tel" class="input" id="f_emergencyPhone" placeholder="+91 9876543210" value="${profile.emergencyPhone || ''}" oninput="saveField('emergencyPhone', this.value)">
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:20px;">
+        <div style="font-weight:600;margin-bottom:12px;">🔔 Notification Preferences</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          ${[
+            {key:'notif_workout', label:'Workout reminders', default: true},
+            {key:'notif_meals', label:'Meal logging reminders', default: true},
+            {key:'notif_water', label:'Water intake reminders', default: true},
+            {key:'notif_weekly', label:'Weekly progress report', default: true},
+          ].map(n => `
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
+              <span style="font-size:0.88rem;">${n.label}</span>
+              <div class="toggle ${profile[n.key] !== false ? 'on' : ''}" onclick="toggleNotif('${n.key}', this)"></div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `,
+    validate: () => true
+  },
+  {
+    title: 'Progress Photos',
+    subtitle: 'Before photos are powerful motivators. You can always add them later.',
+    render: () => `
+      <div class="onboarding-step-title">📸 Before Photos</div>
+      <div class="onboarding-step-subtitle">Optional but strongly recommended. These are stored locally on your device only.</div>
+      <div class="photo-grid" style="margin-bottom:20px;">
+        ${['Front', 'Back', 'Left Side', 'Right Side'].map(angle => `
+          <div class="photo-slot" id="photoSlot_${angle.replace(' ','_')}" onclick="document.getElementById('photoInput_${angle.replace(' ','_')}').click()">
+            <input type="file" id="photoInput_${angle.replace(' ','_')}" accept="image/*" style="display:none;" onchange="previewPhoto(this, '${angle.replace(' ','_')}')">
+            ${profile['photo_' + angle.replace(' ','_')] ? `<img src="${profile['photo_' + angle.replace(' ','_')]}" class="photo-preview">` : `<div style="text-align:center;"><div style="font-size:2rem;margin-bottom:8px;">📷</div><div style="font-size:0.8rem;color:var(--text-muted);">Tap to add</div></div>`}
+            <div class="photo-slot-label">${angle}</div>
+          </div>
+        `).join('')}
+      </div>
+      <div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.15);border-radius:var(--radius-sm);padding:14px 16px;">
+        <div style="font-weight:600;font-size:0.85rem;color:var(--success);margin-bottom:6px;">💡 Photo Tips:</div>
+        <ul style="font-size:0.82rem;color:var(--text-secondary);line-height:1.8;padding-left:16px;list-style:disc;">
+          <li>Take in good lighting (natural light is best)</li>
+          <li>Wear tight-fitting or minimal clothing</li>
+          <li>Same pose and lighting every time for consistency</li>
+          <li>Morning photos (before eating) give most accurate results</li>
+          <li>All photos stay on your device — never uploaded to servers</li>
+        </ul>
+      </div>
+      <p style="text-align:center;margin-top:16px;font-size:0.85rem;color:var(--text-muted);">You can skip this and add photos later in the Progress section.</p>
+    `,
+    validate: () => true
+  },
+  {
+    title: 'All Done!',
+    subtitle: 'Your profile is complete. Generating your personalized plan...',
+    render: () => `
+      <div class="complete-screen">
+        <div class="complete-icon">🎉</div>
+        <h2 style="margin:16px 0 8px;">Profile Complete!</h2>
+        <p style="margin-bottom:32px;font-size:1rem;color:var(--text-secondary);">Brilliant, <strong>${profile.firstName}</strong>! Your personalized transformation plan is being generated.</p>
+        
+        <div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:24px;text-align:left;">
+          <div style="font-weight:700;margin-bottom:16px;">📊 Your Profile Summary</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:0.85rem;">
+            <div><span style="color:var(--text-muted);">Name:</span> <strong>${profile.firstName} ${profile.lastName}</strong></div>
+            <div><span style="color:var(--text-muted);">Goal:</span> <strong>${(profile.goals||[]).slice(0,2).join(', ')}</strong></div>
+            <div><span style="color:var(--text-muted);">Weight:</span> <strong>${profile.weight || '—'}kg → ${profile.targetWeight || '—'}kg</strong></div>
+            <div><span style="color:var(--text-muted);">Level:</span> <strong>${profile.fitnessLevel || '—'}</strong></div>
+            <div><span style="color:var(--text-muted);">Diet:</span> <strong>${profile.dietType || '—'}</strong></div>
+            <div><span style="color:var(--text-muted);">Training:</span> <strong>${profile.workoutDays || '—'} days/week</strong></div>
+          </div>
+          ${profile.weight && profile.height ? `
+          <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span style="font-size:0.85rem;color:var(--text-muted);">BMI: <strong>${TXUtils.fitness.bmi(profile.weight, profile.height)}</strong></span>
+              <span style="font-size:0.85rem;color:var(--text-muted);">Daily Calories: <strong>~${TXUtils.fitness.tdee(TXUtils.fitness.bmr(profile.weight, profile.height, profile.age || 25, profile.gender || 'Male'), profile.activityLevel || 'Moderately Active (3-5 days/week)')} kcal</strong></span>
+            </div>
+          </div>` : ''}
+        </div>
+
+        <div class="ai-generating">
+          <div style="display:flex;gap:4px;">
+            <div class="ai-dot"></div>
+            <div class="ai-dot"></div>
+            <div class="ai-dot"></div>
+          </div>
+          <div style="font-size:0.85rem;color:var(--text-secondary);">AI generating your personalized plan... <span style="color:var(--primary-light);font-weight:600;" id="aiStatus">Analyzing profile</span></div>
+        </div>
+      </div>
+    `,
+    validate: () => true,
+    onEnter: () => {
+      // Simulate AI plan generation
+      const statuses = ['Analyzing profile', 'Calculating macros', 'Building workout split', 'Creating meal plan', 'Generating habit stack', 'Finalizing your plan'];
+      let i = 0;
+      const interval = setInterval(() => {
+        const el = document.getElementById('aiStatus');
+        if (el && i < statuses.length) { el.textContent = statuses[i++]; }
+        else { clearInterval(interval); }
+      }, 800);
+      // Generate and save initial plan data
+      generateAIPlan();
+    }
+  }
+];
+
+// ===== STEP RENDERING =====
+function renderStep() {
+  const step = steps[currentStep];
+  const card = document.getElementById('stepCard');
+  card.innerHTML = step.render();
+  card.className = 'onboarding-card animate-fade-in';
+
+  // Call onEnter if exists
+  if (step.onEnter) step.onEnter();
+
+  // Update UI
+  document.getElementById('stepLabel').textContent = `Step ${currentStep + 1} of ${TOTAL_STEPS}`;
+  document.getElementById('stepTitle').textContent = step.title;
+  document.getElementById('progressPct').textContent = `${Math.round((currentStep / TOTAL_STEPS) * 100)}% complete`;
+  document.getElementById('footerStepInfo').textContent = `${currentStep + 1} / ${TOTAL_STEPS}`;
+
+  // Step dots
+  const dotsContainer = document.getElementById('stepDots');
+  dotsContainer.innerHTML = steps.map((_, i) => `
+    <div class="step-dot ${i < currentStep ? 'done' : ''} ${i === currentStep ? 'active' : ''}"></div>
+  `).join('');
+
+  // Prev button
+  document.getElementById('prevBtn').style.visibility = currentStep === 0 ? 'hidden' : 'visible';
+
+  // Next button
+  const nextBtn = document.getElementById('nextBtn');
+  if (currentStep === TOTAL_STEPS - 1) {
+    nextBtn.textContent = 'Go to Dashboard →';
+    nextBtn.onclick = () => completeOnboarding();
+  } else {
+    nextBtn.textContent = 'Continue →';
+    nextBtn.onclick = () => nextStep();
+  }
+}
+
+function nextStep() {
+  const step = steps[currentStep];
+  if (!step.validate()) return;
+  if (currentStep < TOTAL_STEPS - 1) {
+    currentStep++;
+    saveProgress();
+    renderStep();
+    window.scrollTo(0, 0);
+  }
+}
+
+function prevStep() {
+  if (currentStep > 0) {
+    currentStep--;
+    saveProgress();
+    renderStep();
+    window.scrollTo(0, 0);
+  }
+}
+
+// ===== FIELD HELPERS =====
+function saveField(key, value) {
+  profile[key] = value;
+  saveProgress();
+}
+
+function updateAge() {
+  const dob = document.getElementById('f_dob');
+  if (dob && dob.value) {
+    const age = Math.floor((Date.now() - new Date(dob.value)) / (365.25 * 24 * 60 * 60 * 1000));
+    profile.age = age;
+    const ageInput = document.getElementById('f_age');
+    if (ageInput) ageInput.value = age;
+    saveProgress();
+  }
+}
+
+function updateBMI() {
+  const h = parseFloat(document.getElementById('f_height')?.value);
+  const w = parseFloat(document.getElementById('f_weight')?.value);
+  if (h && w) {
+    const bmi = TXUtils.fitness.bmi(w, h);
+    const cat = TXUtils.fitness.bmiCategory(bmi);
+    const display = document.getElementById('bmiDisplay');
+    const val = document.getElementById('bmiVal');
+    const catEl = document.getElementById('bmiCategory');
+    if (display && val && catEl) {
+      display.style.display = 'flex';
+      val.textContent = bmi;
+      val.style.color = cat.color;
+      catEl.textContent = cat.label;
+      catEl.style.color = cat.color;
+    }
+    profile.bmi = parseFloat(bmi);
+    saveProgress();
+  }
+}
+
+function selectActivity(value) {
+  profile.activityLevel = value;
+  document.querySelectorAll('[id^="act_"]').forEach(el => {
+    el.style.borderColor = '';
+    el.style.background = '';
+    el.style.color = '';
+  });
+  const firstWord = value.split(' ')[0];
+  const el = document.getElementById('act_' + firstWord);
+  if (el) {
+    el.style.borderColor = 'var(--primary)';
+    el.style.background = 'rgba(99,102,241,0.12)';
+    el.style.color = 'var(--primary-light)';
+  }
+  saveProgress();
+}
+
+function toggleGoal(goal) {
+  if (!profile.goals) profile.goals = [];
+  const idx = profile.goals.indexOf(goal);
+  if (idx >= 0) profile.goals.splice(idx, 1);
+  else profile.goals.push(goal);
+  const el = document.getElementById('goal_' + goal.replace(/\s/g, '_'));
+  if (el) {
+    const active = profile.goals.includes(goal);
+    el.style.borderColor = active ? 'var(--primary)' : '';
+    el.style.background = active ? 'rgba(99,102,241,0.12)' : '';
+    el.style.color = active ? 'var(--primary-light)' : '';
+  }
+  saveProgress();
+}
+
+function selectLevel(level) {
+  profile.fitnessLevel = level;
+  ['Beginner','Intermediate','Advanced'].forEach(l => {
+    const el = document.getElementById('lvl_' + l);
+    if (el) { el.style.borderColor = ''; el.style.background = ''; el.style.color = ''; }
+  });
+  const el = document.getElementById('lvl_' + level);
+  if (el) { el.style.borderColor = 'var(--primary)'; el.style.background = 'rgba(99,102,241,0.12)'; el.style.color = 'var(--primary-light)'; }
+  saveProgress();
+}
+
+function toggleCondition(condition) {
+  if (!profile.conditions) profile.conditions = [];
+  if (condition === 'None') { profile.conditions = ['None']; }
+  else {
+    const noneIdx = profile.conditions.indexOf('None');
+    if (noneIdx >= 0) profile.conditions.splice(noneIdx, 1);
+    const idx = profile.conditions.indexOf(condition);
+    if (idx >= 0) profile.conditions.splice(idx, 1);
+    else profile.conditions.push(condition);
+  }
+  document.querySelectorAll('[id^="cond_"]').forEach(el => { el.style.borderColor = ''; el.style.background = ''; el.style.color = ''; });
+  profile.conditions.forEach(c => {
+    const el = document.getElementById('cond_' + c.replace(/\W/g,''));
+    if (el) { el.style.borderColor = 'var(--primary)'; el.style.background = 'rgba(99,102,241,0.12)'; el.style.color = 'var(--primary-light)'; }
+  });
+  saveProgress();
+}
+
+function selectDiet(diet) {
+  profile.dietType = diet;
+  document.querySelectorAll('[id^="diet_"]').forEach(el => { el.style.borderColor = ''; el.style.background = ''; el.style.color = ''; });
+  const el = document.getElementById('diet_' + diet.replace(/\s/g, '_'));
+  if (el) { el.style.borderColor = 'var(--primary)'; el.style.background = 'rgba(99,102,241,0.12)'; el.style.color = 'var(--primary-light)'; }
+  saveProgress();
+}
+
+function toggleEquipment(equip) {
+  if (!profile.equipment) profile.equipment = [];
+  const idx = profile.equipment.indexOf(equip);
+  if (idx >= 0) profile.equipment.splice(idx, 1);
+  else profile.equipment.push(equip);
+  const el = document.getElementById('equip_' + equip.replace(/\W/g,'_'));
+  if (el) {
+    const active = profile.equipment.includes(equip);
+    el.style.borderColor = active ? 'var(--primary)' : '';
+    el.style.background = active ? 'rgba(99,102,241,0.12)' : '';
+    el.style.color = active ? 'var(--primary-light)' : '';
+  }
+  saveProgress();
+}
+
+function selectWorkoutTime(time) {
+  profile.workoutTime = time;
+  document.querySelectorAll('[id^="wtime_"]').forEach(el => { el.style.borderColor = ''; el.style.background = ''; el.style.color = ''; });
+  const icons = { '🌅': '🌅', '☀️': '☀️', '🌤️': '🌤️', '🌆': '🌆', '🌙': '🌙' };
+  document.querySelectorAll('[id^="wtime_"]').forEach(el => {
+    if (el.textContent.includes(time.split(' ')[0])) {
+      el.style.borderColor = 'var(--primary)'; el.style.background = 'rgba(99,102,241,0.12)'; el.style.color = 'var(--primary-light)';
+    }
+  });
+  saveProgress();
+}
+
+function toggleNotif(key, el) {
+  el.classList.toggle('on');
+  profile[key] = el.classList.contains('on');
+  saveProgress();
+}
+
+function previewPhoto(input, angle) {
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      profile['photo_' + angle] = e.target.result;
+      saveProgress();
+      const slot = document.getElementById('photoSlot_' + angle);
+      if (slot) {
+        slot.innerHTML = `<img src="${e.target.result}" class="photo-preview"><div class="photo-slot-label">${angle.replace('_',' ')}</div>`;
+      }
+      TXUtils.achievements.earn('a012');
+      TXUtils.toast.success('Progress photo saved! 📸');
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+// ===== AI PLAN GENERATION =====
+function generateAIPlan() {
+  const bmr = TXUtils.fitness.bmr(profile.weight || 70, profile.height || 170, profile.age || 25, profile.gender || 'Male');
+  const tdee = TXUtils.fitness.tdee(bmr, profile.activityLevel || 'Moderately Active (3-5 days/week)');
+  const primaryGoal = (profile.goals || [])[0] || 'General Health';
+
+  let targetCalories = tdee;
+  if (primaryGoal.includes('Fat Loss') || primaryGoal.includes('Weight Loss')) targetCalories = tdee - 500;
+  else if (primaryGoal.includes('Muscle Gain') || primaryGoal.includes('Bodybuilding')) targetCalories = tdee + 300;
+
+  const macros = TXUtils.fitness.macros(targetCalories, primaryGoal);
+
+  // Choose workout plan
+  let planId = 'full-body';
+  const days = profile.workoutDays || 3;
+  if (days >= 6) planId = 'ppl';
+  else if (days >= 4) planId = 'upper-lower';
+  else if (days >= 3 && (profile.goals||[]).includes('Calisthenics')) planId = 'calisthenics';
+  else planId = 'full-body';
+
+  const workoutPlan = TX_DATA.workoutPlans.find(p => p.id === planId);
+
+  // Choose meal plan
+  const mealPlanId = profile.dietType === 'Vegetarian' || profile.dietType === 'Vegan' ? 'mp002' : 'mp001';
+  const mealPlan = TX_DATA.mealPlans.find(p => p.id === mealPlanId);
+
+  const aiPlan = {
+    generated_at: new Date().toISOString(),
+    tdee, bmr, targetCalories, macros,
+    workout_plan: workoutPlan,
+    meal_plan: mealPlan,
+    recommended_supplements: TX_DATA.supplements.slice(0, 5),
+    morning_routine: TX_DATA.morningRoutine,
+    night_routine: TX_DATA.nightRoutine,
+    habits: TX_DATA.habits.slice(0, 7),
+  };
+
+  TXUtils.storage.set('ai_plan', aiPlan);
+  TXUtils.storage.set('user_profile', profile);
+  TXUtils.xp.add(200, 'Completed onboarding!');
+  TXUtils.achievements.earn('a011');
+}
+
+function completeOnboarding() {
+  // Mark user as complete
+  const user = TXUtils.auth.getUser();
+  if (user) {
+    user.onboarding_complete = true;
+    user.profile = profile;
+    TXUtils.auth.login(user);
+    // Update in all users
+    const allUsers = JSON.parse(localStorage.getItem('tx_all_users') || '[]');
+    const idx = allUsers.findIndex(u => u.id === user.id);
+    if (idx >= 0) { allUsers[idx] = user; localStorage.setItem('tx_all_users', JSON.stringify(allUsers)); }
+  }
+  TXUtils.storage.set('user_profile', profile);
+  TXUtils.toast.success(`Welcome to TransformX AI, ${profile.firstName}! 🎉 Your plan is ready!`);
+  setTimeout(() => { window.location.href = 'app.html'; }, 1500);
+}
+
+// ===== INIT =====
+TXUtils.theme.apply();
+loadProgress();
+renderStep();
+
+// Keyboard navigation
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA' && e.target.tagName !== 'SELECT') {
+    // Don't trigger on option buttons
+    if (!e.target.classList.contains('option-btn')) nextStep();
+  }
+});
+</script>
+</body>
+</html>

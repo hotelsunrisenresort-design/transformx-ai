@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In — TransformX AI</title>
+  <meta name="description" content="Sign in or create your free TransformX AI account to start your body transformation.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <style>
+    body { min-height: 100vh; }
+    .auth-left-content { position: relative; z-index: 1; text-align: center; color: white; }
+    .auth-left::before { content: ''; position: absolute; inset: 0; background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); }
+    .stat-pill { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2); border-radius: 999px; padding: 8px 20px; font-size: 0.85rem; font-weight: 600; margin: 6px; display: inline-block; }
+    .otp-inputs { display: flex; gap: 10px; justify-content: center; }
+    .otp-input { width: 48px; height: 56px; text-align: center; font-size: 1.4rem; font-weight: 700; border: 2px solid var(--border-light); border-radius: var(--radius-sm); background: var(--bg-secondary); color: var(--text-primary); transition: var(--transition-fast); }
+    .otp-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
+    .auth-tab { flex: 1; text-align: center; padding: 12px; font-weight: 600; font-size: 0.9rem; cursor: pointer; border-bottom: 2px solid transparent; color: var(--text-muted); transition: var(--transition-fast); }
+    .auth-tab.active { color: var(--primary-light); border-bottom-color: var(--primary); }
+    .auth-tabs-wrap { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 28px; }
+    .strength-bar { height: 4px; border-radius: 999px; background: var(--bg-secondary); overflow: hidden; margin-top: 8px; }
+    .strength-fill { height: 100%; border-radius: 999px; transition: width 0.3s ease, background 0.3s ease; }
+  </style>
+</head>
+<body>
+
+<div class="auth-page">
+  <!-- LEFT PANEL -->
+  <div class="auth-left">
+    <div class="auth-left-content">
+      <div style="font-size:3.5rem;margin-bottom:20px;">⚡</div>
+      <h2 style="color:white;font-size:2rem;margin-bottom:12px;">Transform your body.<br>Transform your life.</h2>
+      <p style="opacity:0.8;margin-bottom:32px;line-height:1.7;font-size:0.95rem;">Join 12,000+ people who've achieved their dream physique with TransformX AI.</p>
+
+      <!-- Stat pills -->
+      <div style="margin-bottom:40px;">
+        <span class="stat-pill">🏆 12,847 Active Users</span>
+        <span class="stat-pill">💪 284K Workouts Logged</span>
+        <span class="stat-pill">📊 4,293 Transformations</span>
+        <span class="stat-pill">🤖 AI-Powered Coaching</span>
+        <span class="stat-pill">🥗 Indian Diet Plans</span>
+      </div>
+
+      <!-- Mini testimonials -->
+      <div style="display:flex;flex-direction:column;gap:12px;max-width:380px;margin:0 auto;">
+        <div style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:14px;padding:16px;text-align:left;">
+          <div style="color:#fbbf24;font-size:0.8rem;margin-bottom:6px;">★★★★★</div>
+          <p style="font-size:0.85rem;opacity:0.9;margin:0 0 10px;">"Lost 18kg in 5 months with Indian food. No gym intimidation, just real results."</p>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:28px;height:28px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;">AS</div>
+            <div><div style="font-size:0.78rem;font-weight:700;">Arjun Sharma</div><div style="font-size:0.7rem;opacity:0.7;">Mumbai — Fat Loss</div></div>
+          </div>
+        </div>
+        <div style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);border-radius:14px;padding:16px;text-align:left;">
+          <div style="color:#fbbf24;font-size:0.8rem;margin-bottom:6px;">★★★★★</div>
+          <p style="font-size:0.85rem;opacity:0.9;margin:0 0 10px;">"As a vegetarian, finally a plan that works! Gained 6kg muscle eating paneer and dal."</p>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:28px;height:28px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;">PN</div>
+            <div><div style="font-size:0.78rem;font-weight:700;">Priya Nair</div><div style="font-size:0.7rem;opacity:0.7;">Bangalore — Muscle Gain</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="auth-right">
+    <div>
+      <!-- Logo -->
+      <a href="index.html" style="display:flex;align-items:center;gap:10px;margin-bottom:36px;">
+        <div style="width:36px;height:36px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;">⚡</div>
+        <span style="font-weight:800;font-size:1.1rem;">Transform<span style="color:#818cf8;">X AI</span></span>
+      </a>
+
+      <!-- Auth Tabs -->
+      <div class="auth-tabs-wrap">
+        <div class="auth-tab active" id="loginTab" onclick="switchTab('login')">Log In</div>
+        <div class="auth-tab" id="signupTab" onclick="switchTab('signup')">Sign Up</div>
+        <div class="auth-tab" id="phoneTab" onclick="switchTab('phone')">Phone OTP</div>
+      </div>
+
+      <!-- LOGIN FORM -->
+      <div id="loginForm">
+        <h2 style="font-size:1.5rem;margin-bottom:4px;">Welcome back 👋</h2>
+        <p style="font-size:0.88rem;margin-bottom:24px;">Log in to continue your transformation.</p>
+
+        <!-- Social Login -->
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">
+          <button class="auth-social-btn" onclick="socialLogin('google')">
+            <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+            Continue with Google
+          </button>
+          <div style="display:flex;gap:10px;">
+            <button class="auth-social-btn" onclick="socialLogin('github')" style="flex:1;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+              GitHub
+            </button>
+            <button class="auth-social-btn" onclick="socialLogin('apple')" style="flex:1;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98l-.09.06c-.22.14-2.22 1.3-2.2 3.88.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.64M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+              Apple
+            </button>
+          </div>
+        </div>
+
+        <div class="auth-divider">or continue with email</div>
+
+        <form onsubmit="handleLogin(event)">
+          <div style="display:flex;flex-direction:column;gap:16px;">
+            <div class="input-group">
+              <label class="input-label">Email Address</label>
+              <div class="input-icon-wrap">
+                <span class="input-icon"✉️</span>
+                <input type="email" class="input" id="loginEmail" placeholder="you@example.com" required>
+              </div>
+            </div>
+            <div class="input-group">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <label class="input-label">Password</label>
+                <a href="#" onclick="showForgotPassword()" style="font-size:0.78rem;color:var(--primary-light);">Forgot password?</a>
+              </div>
+              <div class="input-icon-wrap" style="position:relative;">
+                <span class="input-icon">🔒</span>
+                <input type="password" class="input" id="loginPassword" placeholder="••••••••" required style="padding-right:44px;">
+                <button type="button" onclick="togglePassword('loginPassword')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;color:var(--text-muted);font-size:1rem;">👁️</button>
+              </div>
+            </div>
+            <div class="toggle-wrap">
+              <div class="toggle on" id="rememberToggle" onclick="this.classList.toggle('on')"></div>
+              <span style="font-size:0.85rem;color:var(--text-secondary);">Remember me for 30 days</span>
+            </div>
+            <button type="submit" class="btn btn-primary btn-full btn-lg" id="loginBtn">Log In</button>
+          </div>
+        </form>
+        <p style="text-align:center;font-size:0.85rem;color:var(--text-muted);margin-top:20px;">
+          Don't have an account? <a href="#" onclick="switchTab('signup')" style="color:var(--primary-light);font-weight:600;">Sign up free</a>
+        </p>
+      </div>
+
+      <!-- SIGNUP FORM -->
+      <div id="signupForm" style="display:none;">
+        <h2 style="font-size:1.5rem;margin-bottom:4px;">Create your account 🚀</h2>
+        <p style="font-size:0.88rem;margin-bottom:24px;">Start your free transformation journey today.</p>
+
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">
+          <button class="auth-social-btn" onclick="socialLogin('google')">
+            <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+            Sign up with Google
+          </button>
+        </div>
+        <div class="auth-divider">or with email</div>
+
+        <form onsubmit="handleSignup(event)">
+          <div style="display:flex;flex-direction:column;gap:14px;">
+            <div style="display:flex;gap:12px;">
+              <div class="input-group" style="flex:1;">
+                <label class="input-label">First Name</label>
+                <input type="text" class="input" id="signupFirstName" placeholder="Arjun" required>
+              </div>
+              <div class="input-group" style="flex:1;">
+                <label class="input-label">Last Name</label>
+                <input type="text" class="input" id="signupLastName" placeholder="Sharma" required>
+              </div>
+            </div>
+            <div class="input-group">
+              <label class="input-label">Email Address</label>
+              <div class="input-icon-wrap">
+                <span class="input-icon">✉️</span>
+                <input type="email" class="input" id="signupEmail" placeholder="you@example.com" required>
+              </div>
+            </div>
+            <div class="input-group">
+              <label class="input-label">Password</label>
+              <div class="input-icon-wrap" style="position:relative;">
+                <span class="input-icon">🔒</span>
+                <input type="password" class="input" id="signupPassword" placeholder="Min. 8 characters" required oninput="checkPasswordStrength(this.value)" style="padding-right:44px;">
+                <button type="button" onclick="togglePassword('signupPassword')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;color:var(--text-muted);font-size:1rem;">👁️</button>
+              </div>
+              <div class="strength-bar"><div class="strength-fill" id="strengthFill" style="width:0%;"></div></div>
+              <div id="strengthLabel" style="font-size:0.75rem;color:var(--text-muted);margin-top:4px;"></div>
+            </div>
+            <div class="input-group">
+              <label class="input-label">Confirm Password</label>
+              <div class="input-icon-wrap">
+                <span class="input-icon">🔒</span>
+                <input type="password" class="input" id="signupConfirmPassword" placeholder="Re-enter password" required>
+              </div>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:10px;">
+              <input type="checkbox" id="agreeTerms" style="margin-top:3px;cursor:pointer;" required>
+              <label for="agreeTerms" style="font-size:0.82rem;color:var(--text-secondary);line-height:1.5;cursor:pointer;">I agree to the <a href="#" style="color:var(--primary-light);">Terms of Service</a> and <a href="#" style="color:var(--primary-light);">Privacy Policy</a></label>
+            </div>
+            <button type="submit" class="btn btn-primary btn-full btn-lg" id="signupBtn">Create Free Account</button>
+          </div>
+        </form>
+        <p style="text-align:center;font-size:0.85rem;color:var(--text-muted);margin-top:20px;">
+          Already have an account? <a href="#" onclick="switchTab('login')" style="color:var(--primary-light);font-weight:600;">Log in</a>
+        </p>
+      </div>
+
+      <!-- PHONE OTP FORM -->
+      <div id="phoneForm" style="display:none;">
+        <h2 style="font-size:1.5rem;margin-bottom:4px;">Login with Phone 📱</h2>
+        <p style="font-size:0.88rem;margin-bottom:24px;">We'll send a 6-digit OTP to your mobile number.</p>
+
+        <div id="phoneStep1">
+          <form onsubmit="sendOTP(event)">
+            <div style="display:flex;flex-direction:column;gap:16px;">
+              <div class="input-group">
+                <label class="input-label">Mobile Number</label>
+                <div style="display:flex;gap:8px;">
+                  <select class="select" style="width:100px;">
+                    <option value="+91">🇮🇳 +91</option>
+                    <option value="+1">🇺🇸 +1</option>
+                    <option value="+44">🇬🇧 +44</option>
+                    <option value="+61">🇦🇺 +61</option>
+                    <option value="+971">🇦🇪 +971</option>
+                  </select>
+                  <input type="tel" class="input" id="phoneNumber" placeholder="9876543210" maxlength="10" required>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary btn-full btn-lg">Send OTP</button>
+            </div>
+          </form>
+        </div>
+
+        <div id="phoneStep2" style="display:none;">
+          <p style="font-size:0.88rem;margin-bottom:20px;color:var(--text-secondary);">OTP sent to <strong id="maskedPhone"></strong></p>
+          <form onsubmit="verifyOTP(event)">
+            <div style="display:flex;flex-direction:column;gap:20px;">
+              <div>
+                <label class="input-label" style="display:block;margin-bottom:12px;text-align:center;">Enter 6-Digit OTP</label>
+                <div class="otp-inputs">
+                  <input type="text" class="otp-input" maxlength="1" id="otp0" oninput="otpInput(this, 0)">
+                  <input type="text" class="otp-input" maxlength="1" id="otp1" oninput="otpInput(this, 1)">
+                  <input type="text" class="otp-input" maxlength="1" id="otp2" oninput="otpInput(this, 2)">
+                  <input type="text" class="otp-input" maxlength="1" id="otp3" oninput="otpInput(this, 3)">
+                  <input type="text" class="otp-input" maxlength="1" id="otp4" oninput="otpInput(this, 4)">
+                  <input type="text" class="otp-input" maxlength="1" id="otp5" oninput="otpInput(this, 5)">
+                </div>
+              </div>
+              <div style="text-align:center;">
+                <span style="font-size:0.82rem;color:var(--text-muted);">Didn't receive it? </span>
+                <a href="#" onclick="resendOTP()" id="resendLink" style="font-size:0.82rem;color:var(--primary-light);font-weight:600;">Resend OTP</a>
+                <span id="resendTimer" style="display:none;font-size:0.82rem;color:var(--text-muted);"> (30s)</span>
+              </div>
+              <button type="submit" class="btn btn-primary btn-full btn-lg">Verify & Login</button>
+              <button type="button" onclick="document.getElementById('phoneStep1').style.display='block';document.getElementById('phoneStep2').style.display='none';" class="btn btn-ghost btn-full">← Change Number</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- FORGOT PASSWORD (hidden by default) -->
+      <div id="forgotForm" style="display:none;">
+        <button onclick="showLogin()" style="background:none;color:var(--text-muted);font-size:0.85rem;margin-bottom:20px;display:flex;align-items:center;gap:6px;">← Back to login</button>
+        <h2 style="font-size:1.5rem;margin-bottom:4px;">Reset Password 🔑</h2>
+        <p style="font-size:0.88rem;margin-bottom:24px;">Enter your email and we'll send you a reset link.</p>
+        <form onsubmit="handleForgotPassword(event)">
+          <div style="display:flex;flex-direction:column;gap:16px;">
+            <div class="input-group">
+              <label class="input-label">Email Address</label>
+              <div class="input-icon-wrap">
+                <span class="input-icon">✉️</span>
+                <input type="email" class="input" id="forgotEmail" placeholder="you@example.com" required>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-full btn-lg">Send Reset Link</button>
+          </div>
+        </form>
+      </div>
+
+      <div style="margin-top:32px;padding-top:20px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+        <button onclick="toggleTheme()" style="background:none;color:var(--text-muted);font-size:0.82rem;display:flex;align-items:center;gap:6px;" id="themeBtn">🌙 Dark Mode</button>
+        <a href="index.html" style="font-size:0.82rem;color:var(--text-muted);">← Back to home</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/utils.js"></script>
+<script>
+  // Check URL params
+  const urlParams = new URLSearchParams(window.location.search);
+  const mode = urlParams.get('mode');
+  if (mode === 'signup') switchTab('signup');
+
+  // If already logged in and onboarding complete, go to app
+  if (TXUtils.auth.isLoggedIn()) {
+    if (TXUtils.auth.onboardingComplete()) {
+      window.location.href = 'app.html';
+    } else {
+      window.location.href = 'onboarding.html';
+    }
+  }
+
+  function switchTab(tab) {
+    document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('loginForm').style.display = 'none';
+    document.getElementById('signupForm').style.display = 'none';
+    document.getElementById('phoneForm').style.display = 'none';
+    document.getElementById('forgotForm').style.display = 'none';
+
+    if (tab === 'login') {
+      document.getElementById('loginTab').classList.add('active');
+      document.getElementById('loginForm').style.display = 'block';
+    } else if (tab === 'signup') {
+      document.getElementById('signupTab').classList.add('active');
+      document.getElementById('signupForm').style.display = 'block';
+    } else if (tab === 'phone') {
+      document.getElementById('phoneTab').classList.add('active');
+      document.getElementById('phoneForm').style.display = 'block';
+    }
+  }
+
+  function showForgotPassword() {
+    document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('loginForm').style.display = 'none';
+    document.getElementById('signupForm').style.display = 'none';
+    document.getElementById('phoneForm').style.display = 'none';
+    document.getElementById('forgotForm').style.display = 'block';
+  }
+
+  function showLogin() { switchTab('login'); }
+
+  function togglePassword(id) {
+    const input = document.getElementById(id);
+    input.type = input.type === 'password' ? 'text' : 'password';
+  }
+
+  function checkPasswordStrength(password) {
+    const fill = document.getElementById('strengthFill');
+    const label = document.getElementById('strengthLabel');
+    let strength = 0;
+    if (password.length >= 8) strength++;
+    if (password.length >= 12) strength++;
+    if (/[A-Z]/.test(password)) strength++;
+    if (/[0-9]/.test(password)) strength++;
+    if (/[^A-Za-z0-9]/.test(password)) strength++;
+    const configs = [
+      { pct: '0%', color: 'transparent', text: '' },
+      { pct: '20%', color: '#ef4444', text: '❌ Very Weak' },
+      { pct: '40%', color: '#f97316', text: '⚠️ Weak' },
+      { pct: '60%', color: '#f59e0b', text: '🟡 Fair' },
+      { pct: '80%', color: '#84cc16', text: '✅ Strong' },
+      { pct: '100%', color: '#10b981', text: '💪 Very Strong' },
+    ];
+    const cfg = configs[Math.min(strength, 5)];
+    fill.style.width = cfg.pct;
+    fill.style.background = cfg.color;
+    label.textContent = cfg.text;
+    label.style.color = cfg.color;
+  }
+
+  function handleLogin(e) {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+    const btn = document.getElementById('loginBtn');
+    btn.textContent = '⏳ Logging in...';
+    btn.disabled = true;
+
+    // Check if user exists in localStorage
+    const allUsers = JSON.parse(localStorage.getItem('tx_all_users') || '[]');
+    const user = allUsers.find(u => u.email === email);
+
+    setTimeout(() => {
+      if (user && user.password === btoa(password)) {
+        TXUtils.auth.login(user);
+        TXUtils.toast.success(`Welcome back, ${user.firstName}! 👋`);
+        setTimeout(() => {
+          window.location.href = TXUtils.auth.onboardingComplete() ? 'app.html' : 'onboarding.html';
+        }, 1000);
+      } else if (!user) {
+        TXUtils.toast.error('No account found with this email. Please sign up.');
+        btn.textContent = 'Log In'; btn.disabled = false;
+      } else {
+        TXUtils.toast.error('Incorrect password. Please try again.');
+        btn.textContent = 'Log In'; btn.disabled = false;
+      }
+    }, 1200);
+  }
+
+  function handleSignup(e) {
+    e.preventDefault();
+    const firstName = document.getElementById('signupFirstName').value.trim();
+    const lastName = document.getElementById('signupLastName').value.trim();
+    const email = document.getElementById('signupEmail').value.trim();
+    const password = document.getElementById('signupPassword').value;
+    const confirmPassword = document.getElementById('signupConfirmPassword').value;
+
+    if (password !== confirmPassword) {
+      TXUtils.toast.error('Passwords do not match!');
+      return;
+    }
+    if (password.length < 8) {
+      TXUtils.toast.error('Password must be at least 8 characters');
+      return;
+    }
+
+    const btn = document.getElementById('signupBtn');
+    btn.textContent = '⏳ Creating account...';
+    btn.disabled = true;
+
+    const allUsers = JSON.parse(localStorage.getItem('tx_all_users') || '[]');
+    if (allUsers.find(u => u.email === email)) {
+      TXUtils.toast.error('An account with this email already exists. Please log in.');
+      btn.textContent = 'Create Free Account'; btn.disabled = false;
+      return;
+    }
+
+    setTimeout(() => {
+      const newUser = {
+        id: 'user_' + Date.now(),
+        firstName, lastName, email,
+        password: btoa(password),
+        plan: urlParams.get('plan') || 'free',
+        created_at: new Date().toISOString(),
+        onboarding_complete: false,
+        avatar: firstName[0].toUpperCase() + (lastName[0] || '').toUpperCase()
+      };
+      allUsers.push(newUser);
+      localStorage.setItem('tx_all_users', JSON.stringify(allUsers));
+      TXUtils.auth.login(newUser);
+      TXUtils.toast.success(`Account created! Welcome to TransformX AI, ${firstName}! 🎉`);
+      setTimeout(() => { window.location.href = 'onboarding.html'; }, 1200);
+    }, 1200);
+  }
+
+  function socialLogin(provider) {
+    const providerNames = { google: 'Google', github: 'GitHub', apple: 'Apple' };
+    TXUtils.toast.info(`${providerNames[provider]} login: In production, this connects to OAuth. Using demo mode.`);
+    setTimeout(() => {
+      const demoUser = {
+        id: 'social_' + provider + '_' + Date.now(),
+        firstName: 'Demo', lastName: 'User', email: `demo@${provider}.com`,
+        password: '', plan: 'free',
+        created_at: new Date().toISOString(),
+        onboarding_complete: false,
+        avatar: 'DU',
+        provider
+      };
+      const allUsers = JSON.parse(localStorage.getItem('tx_all_users') || '[]');
+      const existing = allUsers.find(u => u.email === demoUser.email);
+      if (!existing) { allUsers.push(demoUser); localStorage.setItem('tx_all_users', JSON.stringify(allUsers)); }
+      TXUtils.auth.login(existing || demoUser);
+      window.location.href = existing && existing.onboarding_complete ? 'app.html' : 'onboarding.html';
+    }, 1500);
+  }
+
+  function sendOTP(e) {
+    e.preventDefault();
+    const phone = document.getElementById('phoneNumber').value;
+    if (phone.length < 10) { TXUtils.toast.error('Enter a valid 10-digit number'); return; }
+    const masked = phone.slice(0, 3) + '****' + phone.slice(-3);
+    document.getElementById('maskedPhone').textContent = '+91 ' + masked;
+    document.getElementById('phoneStep1').style.display = 'none';
+    document.getElementById('phoneStep2').style.display = 'block';
+    TXUtils.toast.info('OTP sent! (Demo: use 123456)');
+    // Store demo OTP
+    sessionStorage.setItem('demo_otp', '123456');
+    startResendTimer();
+  }
+
+  function verifyOTP(e) {
+    e.preventDefault();
+    const otp = Array.from({length: 6}, (_, i) => document.getElementById('otp' + i).value).join('');
+    const storedOTP = sessionStorage.getItem('demo_otp');
+    if (otp === storedOTP) {
+      const phone = document.getElementById('phoneNumber').value;
+      const demoUser = {
+        id: 'phone_' + Date.now(), firstName: 'User', lastName: '', email: '', phone,
+        plan: 'free', created_at: new Date().toISOString(), onboarding_complete: false, avatar: '👤'
+      };
+      TXUtils.auth.login(demoUser);
+      TXUtils.toast.success('Phone verified! Welcome to TransformX AI!');
+      setTimeout(() => { window.location.href = 'onboarding.html'; }, 1000);
+    } else {
+      TXUtils.toast.error('Invalid OTP. Try 123456 for demo.');
+    }
+  }
+
+  function otpInput(input, index) {
+    input.value = input.value.replace(/[^0-9]/g, '');
+    if (input.value && index < 5) document.getElementById('otp' + (index + 1)).focus();
+  }
+
+  let resendInterval;
+  function startResendTimer() {
+    let seconds = 30;
+    document.getElementById('resendLink').style.display = 'none';
+    document.getElementById('resendTimer').style.display = 'inline';
+    resendInterval = setInterval(() => {
+      seconds--;
+      document.getElementById('resendTimer').textContent = ` (${seconds}s)`;
+      if (seconds <= 0) {
+        clearInterval(resendInterval);
+        document.getElementById('resendLink').style.display = 'inline';
+        document.getElementById('resendTimer').style.display = 'none';
+      }
+    }, 1000);
+  }
+
+  function resendOTP() {
+    TXUtils.toast.info('OTP resent! (Demo: 123456)');
+    sessionStorage.setItem('demo_otp', '123456');
+    startResendTimer();
+  }
+
+  function handleForgotPassword(e) {
+    e.preventDefault();
+    const email = document.getElementById('forgotEmail').value;
+    TXUtils.toast.success(`Password reset link sent to ${email}! (Demo mode — no actual email)`);
+    setTimeout(() => switchTab('login'), 2000);
+  }
+
+  function toggleTheme() {
+    const newTheme = TXUtils.theme.toggle();
+    document.getElementById('themeBtn').textContent = newTheme === 'dark' ? '🌙 Dark Mode' : '☀️ Light Mode';
+  }
+
+  // Apply theme
+  TXUtils.theme.apply();
+  const savedTheme = TXUtils.theme.get();
+  document.getElementById('themeBtn').textContent = savedTheme === 'dark' ? '🌙 Dark Mode' : '☀️ Light Mode';
+</script>
+</body>
+</html>

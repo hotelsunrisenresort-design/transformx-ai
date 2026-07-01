@@ -1,0 +1,2846 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — TransformX AI</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+    .section-header h2 { font-size: 1.4rem; }
+    .macro-row { display: flex; gap: 12px; flex-wrap: wrap; }
+    .macro-pill { flex: 1; min-width: 80px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px; text-align: center; }
+    .macro-pill-val { font-size: 1.1rem; font-weight: 800; }
+    .macro-pill-label { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; }
+    .workout-set-input { width: 70px; padding: 6px 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-secondary); color: var(--text-primary); font-size: 0.85rem; text-align: center; }
+    .workout-set-input:focus { border-color: var(--primary); }
+    .active-timer { font-size: 2.5rem; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+    .pr-badge { background: linear-gradient(135deg, #fbbf24, #f97316); color: white; font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
+    .food-search-results { max-height: 300px; overflow-y: auto; background: var(--bg-card); border: 1px solid var(--border-light); border-radius: var(--radius-sm); margin-top: 4px; }
+    .food-result-item { padding: 10px 14px; cursor: pointer; border-bottom: 1px solid var(--border); transition: background 0.15s; display: flex; justify-content: space-between; align-items: center; }
+    .food-result-item:hover { background: var(--bg-hover); }
+    .food-result-item:last-child { border-bottom: none; }
+    .measurement-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+    .measurement-row:last-child { border-bottom: none; }
+    .chat-typing { display: flex; align-items: center; gap: 4px; padding: 12px 16px; }
+    .chat-typing-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-muted); animation: pulse-dot 1.2s infinite; }
+    .chat-typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .chat-typing-dot:nth-child(3) { animation-delay: 0.4s; }
+    .cal-event { font-size: 0.65rem; background: var(--primary); color: white; border-radius: 3px; padding: 1px 4px; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+    .cal-event.meal { background: var(--success); }
+    .cal-event.measurement { background: var(--warning); color: #333; }
+    .plan-day-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 8px; transition: var(--transition); }
+    .plan-day-card:hover { border-color: var(--primary); }
+    .plan-day-card.active-day { border-color: var(--primary); background: rgba(99,102,241,0.06); }
+    .habit-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+    .habit-check { width: 24px; height: 24px; border-radius: 6px; border: 2px solid var(--border-light); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: var(--transition-fast); flex-shrink: 0; }
+    .habit-check.done { background: var(--success); border-color: var(--success); color: white; }
+    .supplement-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 16px; transition: var(--transition); }
+    .supplement-card:hover { border-color: var(--border-light); }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR OVERLAY (mobile) -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-logo-icon">⚡</div>
+    <div class="sidebar-logo-text">Transform<span>X AI</span></div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="sidebar-section-label">Main</div>
+    <div class="nav-item active" data-section="dashboard" onclick="navigate('dashboard')">
+      <span class="nav-icon">🏠</span> Dashboard
+    </div>
+    <div class="nav-item" data-section="workout" onclick="navigate('workout')">
+      <span class="nav-icon">💪</span> Workout
+      <span class="nav-badge" id="todayWorkoutBadge">Today</span>
+    </div>
+    <div class="nav-item" data-section="nutrition" onclick="navigate('nutrition')">
+      <span class="nav-icon">🥗</span> Nutrition
+    </div>
+    <div class="nav-item" data-section="progress" onclick="navigate('progress')">
+      <span class="nav-icon">📊</span> Progress
+    </div>
+    <div class="nav-item" data-section="calendar" onclick="navigate('calendar')">
+      <span class="nav-icon">📅</span> Calendar
+    </div>
+
+    <div class="sidebar-section-label">AI & Insights</div>
+    <div class="nav-item" data-section="chat" onclick="navigate('chat')">
+      <span class="nav-icon">🤖</span> AI Coach
+    </div>
+    <div class="nav-item" data-section="plan" onclick="navigate('plan')">
+      <span class="nav-icon">📋</span> My Plan
+    </div>
+    <div class="nav-item" data-section="habits" onclick="navigate('habits')">
+      <span class="nav-icon">✅</span> Habits
+    </div>
+
+    <div class="sidebar-section-label">Lifestyle</div>
+    <div class="nav-item" data-section="notes" onclick="navigate('notes')">
+      <span class="nav-icon">📔</span> Journal
+    </div>
+    <div class="nav-item" data-section="achievements" onclick="navigate('achievements')">
+      <span class="nav-icon">🏆</span> Achievements
+    </div>
+    <div class="nav-item" data-section="supplements" onclick="navigate('supplements')">
+      <span class="nav-icon">💊</span> Supplements
+    </div>
+
+    <div class="sidebar-section-label">System</div>
+    <div class="nav-item" data-section="settings" onclick="navigate('settings')">
+      <span class="nav-icon">⚙️</span> Settings
+    </div>
+  </nav>
+
+  <div class="sidebar-footer">
+    <!-- XP Bar -->
+    <div class="xp-bar-wrap" style="margin-bottom:12px;">
+      <div class="xp-labels">
+        <span id="xpLevel">Level 1 — Beginner 🌱</span>
+        <span id="xpAmount">0 XP</span>
+      </div>
+      <div class="xp-bar"><div class="xp-fill" id="xpFill" style="width:0%"></div></div>
+    </div>
+    <div class="sidebar-user" id="sidebarUser">
+      <div class="avatar" id="userAvatar">?</div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name" id="userName">Loading...</div>
+        <div class="sidebar-user-email" id="userEmail">TransformX AI</div>
+      </div>
+      <span style="color:var(--text-muted);font-size:0.9rem;">⚙️</span>
+    </div>
+  </div>
+</aside>
+
+<!-- HEADER -->
+<header class="app-header">
+  <button class="mobile-menu-btn" onclick="openSidebar()">☰</button>
+  <div class="header-title" id="headerTitle">Dashboard</div>
+  <div class="header-actions">
+    <div class="header-search">
+      <span style="color:var(--text-muted);font-size:0.9rem;">🔍</span>
+      <input type="text" placeholder="Search exercises, foods..." id="globalSearch" oninput="handleGlobalSearch(this.value)">
+    </div>
+    <div class="streak-display" id="headerStreak">
+      <span class="streak-flame">🔥</span>
+      <span id="streakCount">0</span>
+      <span style="font-size:0.78rem;color:var(--text-muted);">day streak</span>
+    </div>
+    <button class="btn-icon btn-ghost" onclick="toggleTheme()" id="themeBtn" title="Toggle theme">🌙</button>
+    <button class="btn btn-primary btn-sm" onclick="TXUtils.auth.logout()">Logout</button>
+  </div>
+</header>
+
+<!-- MAIN CONTENT -->
+<main class="main-content">
+
+  <!-- ===== DASHBOARD ===== -->
+  <section class="page-section active" id="section-dashboard">
+    <div id="dashboardGreeting" style="margin-bottom:28px;"></div>
+
+    <!-- Stats Row -->
+    <div class="dashboard-grid stagger" id="dashboardStats" style="margin-bottom:24px;"></div>
+
+    <!-- Main Grid -->
+    <div class="dashboard-grid-3" style="margin-bottom:24px;">
+      <!-- Today's Workout -->
+      <div class="card" id="todayWorkoutCard">
+        <div class="section-header">
+          <h3>💪 Today's Workout</h3>
+          <button class="btn btn-primary btn-sm" onclick="navigate('workout')">Start →</button>
+        </div>
+        <div id="todayWorkoutContent"></div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div class="card" style="padding:16px;">
+          <h4 style="margin-bottom:12px;">💧 Water Intake</h4>
+          <div class="water-drops" id="waterDrops"></div>
+          <div style="display:flex;justify-content:space-between;margin-top:10px;font-size:0.82rem;">
+            <span id="waterAmount" style="color:var(--cyan);font-weight:700;">0/8 glasses</span>
+            <span style="color:var(--text-muted);">≈ 0L</span>
+          </div>
+          <div style="display:flex;gap:6px;margin-top:10px;">
+            <button class="btn btn-sm btn-secondary" style="flex:1;" onclick="addWater()">+ Glass</button>
+            <button class="btn btn-sm btn-ghost" onclick="removeWater()">− Glass</button>
+          </div>
+        </div>
+
+        <div class="card" style="padding:16px;">
+          <h4 style="margin-bottom:10px;">😊 Today's Mood</h4>
+          <div style="display:flex;justify-content:space-between;" id="moodButtons">
+            ${['😞','😕','😐','🙂','😁'].map((m, i) => `
+              <button onclick="setMood(${i+1}, '${m}')" style="font-size:1.6rem;background:none;border:none;cursor:pointer;opacity:0.4;transition:all 0.2s;" id="mood_${i+1}" title="Mood ${i+1}/5">${m}</button>
+            `).join('')}
+          </div>
+          <div id="moodSaved" style="font-size:0.75rem;color:var(--text-muted);margin-top:6px;text-align:center;"></div>
+        </div>
+
+        <div class="card" style="padding:16px;">
+          <h4 style="margin-bottom:8px;">📝 Quick Note</h4>
+          <textarea id="quickNote" class="input" placeholder="How are you feeling today?" style="height:70px;font-size:0.82rem;" oninput="saveQuickNote(this.value)"></textarea>
+          <button class="btn btn-sm btn-secondary btn-full" style="margin-top:8px;" onclick="saveNote()">Save to Journal</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="dashboard-grid-2" style="margin-bottom:24px;">
+      <div class="card">
+        <div class="section-header">
+          <h3>📈 Weight Progress</h3>
+          <div class="badge badge-success" id="weightTrend">Tracking</div>
+        </div>
+        <div class="chart-container"><canvas id="weightChart"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="section-header">
+          <h3>🍎 Today's Macros</h3>
+          <button class="btn btn-sm btn-ghost" onclick="navigate('nutrition')">Log Food</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:20px;">
+          <div class="chart-container short" style="width:140px;flex-shrink:0;"><canvas id="macroChart"></canvas></div>
+          <div style="flex:1;" id="macroDetails"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Achievements + Habits -->
+    <div class="dashboard-grid-2">
+      <div class="card">
+        <div class="section-header">
+          <h3>🏆 Recent Achievements</h3>
+          <button class="btn btn-sm btn-ghost" onclick="navigate('achievements')">View All</button>
+        </div>
+        <div id="recentAchievements"></div>
+      </div>
+      <div class="card">
+        <div class="section-header">
+          <h3>✅ Today's Habits</h3>
+          <span id="habitScore" style="font-size:0.82rem;color:var(--success);font-weight:600;"></span>
+        </div>
+        <div id="habitsToday"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== WORKOUT SECTION ===== -->
+  <section class="page-section" id="section-workout">
+    <div class="section-header">
+      <h2>💪 Workout</h2>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-primary btn-sm" onclick="startWorkout()">▶ Start Workout</button>
+        <button class="btn btn-secondary btn-sm" onclick="showTab('workout','library')">Exercise Library</button>
+        <button class="btn btn-ghost btn-sm" onclick="showTab('workout','history')">History</button>
+      </div>
+    </div>
+
+    <div class="tabs" style="margin-bottom:20px;" id="workoutTabs">
+      <div class="tab active" onclick="showTab('workout','today')">Today</div>
+      <div class="tab" onclick="showTab('workout','library')">Library</div>
+      <div class="tab" onclick="showTab('workout','log')">Active Logger</div>
+      <div class="tab" onclick="showTab('workout','history')">History</div>
+    </div>
+
+    <!-- TODAY TAB -->
+    <div class="tab-content active" id="workout-today">
+      <div class="dashboard-grid-3">
+        <div>
+          <div id="workoutTodayPlan"></div>
+          <!-- Rest Timer -->
+          <div class="rest-timer" id="restTimerCard" style="display:none;margin-top:16px;">
+            <div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:8px;">⏱️ Rest Timer</div>
+            <div class="active-timer" id="restTimerDisplay">1:30</div>
+            <div style="margin-top:12px;display:flex;gap:8px;justify-content:center;">
+              <button class="btn btn-sm btn-secondary" onclick="setRestTimer(60)">60s</button>
+              <button class="btn btn-sm btn-secondary" onclick="setRestTimer(90)">90s</button>
+              <button class="btn btn-sm btn-secondary" onclick="setRestTimer(120)">2m</button>
+              <button class="btn btn-sm btn-secondary" onclick="setRestTimer(180)">3m</button>
+              <button class="btn btn-sm btn-danger" onclick="stopRestTimer()">Stop</button>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="card">
+            <h4 style="margin-bottom:12px;">📊 This Week's Volume</h4>
+            <div class="chart-container short"><canvas id="weeklyVolumeChart"></canvas></div>
+          </div>
+          <div class="card" style="margin-top:12px;">
+            <h4 style="margin-bottom:12px;">🏅 Recent PRs</h4>
+            <div id="recentPRs"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LIBRARY TAB -->
+    <div class="tab-content" id="workout-library">
+      <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;align-items:center;">
+        <div class="search-wrap" style="flex:1;min-width:200px;">
+          <span class="search-icon">🔍</span>
+          <input type="text" class="search-input" id="exerciseSearch" placeholder="Search exercises..." oninput="filterExercises(this.value)">
+        </div>
+        <select class="select" style="width:160px;" id="categoryFilter" onchange="filterExercises()">
+          <option value="">All Categories</option>
+          <option value="Chest">Chest</option>
+          <option value="Back">Back</option>
+          <option value="Shoulders">Shoulders</option>
+          <option value="Biceps">Biceps</option>
+          <option value="Triceps">Triceps</option>
+          <option value="Legs">Legs</option>
+          <option value="Core">Core</option>
+          <option value="Cardio">Cardio</option>
+          <option value="Mobility">Mobility</option>
+        </select>
+        <select class="select" style="width:150px;" id="difficultyFilter" onchange="filterExercises()">
+          <option value="">All Levels</option>
+          <option value="Beginner">Beginner</option>
+          <option value="Intermediate">Intermediate</option>
+          <option value="Advanced">Advanced</option>
+        </select>
+      </div>
+      <div class="exercises-grid" id="exerciseGrid"></div>
+    </div>
+
+    <!-- ACTIVE LOG TAB -->
+    <div class="tab-content" id="workout-log">
+      <div id="activeWorkoutLogger">
+        <div style="text-align:center;padding:40px 20px;">
+          <div style="font-size:3rem;margin-bottom:16px;">▶</div>
+          <h3 style="margin-bottom:8px;">Start a Workout</h3>
+          <p style="color:var(--text-muted);margin-bottom:24px;">Begin your session to start logging sets and reps.</p>
+          <button class="btn btn-primary btn-lg" onclick="startWorkout()">Start Today's Workout</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- HISTORY TAB -->
+    <div class="tab-content" id="workout-history">
+      <div id="workoutHistoryList"></div>
+    </div>
+  </section>
+
+  <!-- ===== NUTRITION SECTION ===== -->
+  <section class="page-section" id="section-nutrition">
+    <div class="section-header">
+      <h2>🥗 Nutrition</h2>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-primary btn-sm" onclick="TXUtils.modal.open('addFoodModal')">+ Log Food</button>
+        <button class="btn btn-ghost btn-sm" onclick="showTab('nutrition','planner')">Meal Planner</button>
+      </div>
+    </div>
+
+    <div class="tabs" style="margin-bottom:20px;">
+      <div class="tab active" onclick="showTab('nutrition','today')">Today</div>
+      <div class="tab" onclick="showTab('nutrition','planner')">Meal Plans</div>
+      <div class="tab" onclick="showTab('nutrition','foods')">Food Database</div>
+      <div class="tab" onclick="showTab('nutrition','supplements')">Supplements</div>
+    </div>
+
+    <!-- TODAY NUTRITION -->
+    <div class="tab-content active" id="nutrition-today">
+      <div class="dashboard-grid-3" style="margin-bottom:20px;">
+        <div class="card" style="grid-column:span 2;">
+          <!-- Macro Summary -->
+          <div style="display:flex;align-items:center;gap:24px;margin-bottom:20px;flex-wrap:wrap;">
+            <div class="chart-container" style="width:160px;height:160px;flex-shrink:0;"><canvas id="nutMacroChart"></canvas></div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:12px;" id="nutMacroDetails"></div>
+          </div>
+          <!-- Meals List -->
+          <div id="todayMeals"></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div class="card">
+            <h4 style="margin-bottom:8px;">💧 Water</h4>
+            <div style="font-size:2rem;font-weight:800;color:var(--cyan);" id="nutWaterDisplay">0L</div>
+            <div style="font-size:0.78rem;color:var(--text-muted);">Goal: 3L / day</div>
+            <button class="btn btn-sm btn-secondary btn-full" style="margin-top:10px;" onclick="addWater()">+ Add Glass</button>
+          </div>
+          <div class="card">
+            <h4 style="margin-bottom:8px;">📊 Calorie Balance</h4>
+            <div id="calorieBalance"></div>
+          </div>
+          <div class="card">
+            <h4 style="margin-bottom:8px;">🍽️ Quick Add</h4>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              ${['Breakfast','Lunch','Dinner','Snack'].map(m => `
+                <button class="btn btn-ghost btn-sm btn-full" onclick="openAddFood('${m}')">+ ${m}</button>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MEAL PLANS TAB -->
+    <div class="tab-content" id="nutrition-planner">
+      <div id="mealPlanContent"></div>
+    </div>
+
+    <!-- FOOD DATABASE TAB -->
+    <div class="tab-content" id="nutrition-foods">
+      <div style="margin-bottom:16px;">
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" class="search-input" id="foodDbSearch" placeholder="Search 500+ foods (Indian + International)..." oninput="searchFoodDatabase(this.value)">
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+        ${['All','Protein','Indian','Carbs','Fats','Vegetable','Dairy','Nuts','Fruit'].map(c => `
+          <button class="btn btn-sm btn-ghost" onclick="filterFoodDb('${c}')" id="foodCat_${c}">${c}</button>
+        `).join('')}
+      </div>
+      <div class="card"><div id="foodDatabaseList"></div></div>
+    </div>
+
+    <!-- SUPPLEMENTS TAB -->
+    <div class="tab-content" id="nutrition-supplements">
+      <div id="supplementGuide"></div>
+    </div>
+  </section>
+
+  <!-- ===== PROGRESS SECTION ===== -->
+  <section class="page-section" id="section-progress">
+    <div class="section-header">
+      <h2>📊 Progress Tracking</h2>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-primary btn-sm" onclick="TXUtils.modal.open('logMeasurementModal')">+ Log Measurements</button>
+        <button class="btn btn-ghost btn-sm" onclick="exportProgress()">Export PDF</button>
+      </div>
+    </div>
+
+    <div class="tabs" style="margin-bottom:20px;">
+      <div class="tab active" onclick="showTab('progress','measurements')">Measurements</div>
+      <div class="tab" onclick="showTab('progress','photos')">Photos</div>
+      <div class="tab" onclick="showTab('progress','bodycomp')">Body Comp</div>
+    </div>
+
+    <!-- MEASUREMENTS TAB -->
+    <div class="tab-content active" id="progress-measurements">
+      <div class="dashboard-grid-2" style="margin-bottom:20px;">
+        <div class="card">
+          <h3 style="margin-bottom:16px;">⚖️ Weight History</h3>
+          <div class="chart-container tall"><canvas id="progressWeightChart"></canvas></div>
+        </div>
+        <div class="card">
+          <h3 style="margin-bottom:16px;">📏 Body Measurements</h3>
+          <div id="measurementsList"></div>
+        </div>
+      </div>
+      <div class="dashboard-grid" style="grid-template-columns:repeat(3,1fr);">
+        <div class="card" style="grid-column:span 2;">
+          <h3 style="margin-bottom:16px;">📈 Multi-Measurement Chart</h3>
+          <div class="chart-container tall"><canvas id="multiMeasurementChart"></canvas></div>
+        </div>
+        <div class="card">
+          <h3 style="margin-bottom:16px;">🏆 Milestones</h3>
+          <div id="progressMilestones"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHOTOS TAB -->
+    <div class="tab-content" id="progress-photos">
+      <div style="display:flex;gap:12px;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;">
+        <div></div>
+        <button class="btn btn-primary btn-sm" onclick="TXUtils.modal.open('addPhotoModal')">+ Add Photos</button>
+      </div>
+      <div id="photosTimeline"></div>
+    </div>
+
+    <!-- BODY COMP TAB -->
+    <div class="tab-content" id="progress-bodycomp">
+      <div class="dashboard-grid-2">
+        <div class="card">
+          <h3 style="margin-bottom:16px;">📊 BMI & Body Fat</h3>
+          <div id="bodyCompData"></div>
+          <div class="chart-container" style="margin-top:16px;"><canvas id="bodyCompChart"></canvas></div>
+        </div>
+        <div class="card">
+          <h3 style="margin-bottom:16px;">🧮 Body Calculators</h3>
+          <div id="bodyCalculators"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== CALENDAR SECTION ===== -->
+  <section class="page-section" id="section-calendar">
+    <div class="section-header">
+      <h2>📅 Calendar</h2>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="btn btn-ghost btn-sm" onclick="prevMonth()">← Prev</button>
+        <span id="calMonthLabel" style="font-weight:700;"></span>
+        <button class="btn btn-ghost btn-sm" onclick="nextMonth()">Next →</button>
+      </div>
+    </div>
+
+    <div class="dashboard-grid-3">
+      <div class="card" style="grid-column:span 2;">
+        <div class="cal-header" id="calHeader"></div>
+        <div class="cal-grid" id="calGrid"></div>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom:12px;">
+          <h4 style="margin-bottom:12px;">📋 Selected Day</h4>
+          <div id="calSelectedDay" style="font-size:0.9rem;color:var(--text-muted);">Click a day to see details</div>
+        </div>
+        <div class="card">
+          <h4 style="margin-bottom:12px;">🎨 Legend</h4>
+          <div style="display:flex;flex-direction:column;gap:8px;font-size:0.82rem;">
+            <div style="display:flex;align-items:center;gap:8px;"><div style="width:12px;height:12px;border-radius:2px;background:var(--primary);"></div> Workout logged</div>
+            <div style="display:flex;align-items:center;gap:8px;"><div style="width:12px;height:12px;border-radius:2px;background:var(--success);"></div> Meal logged</div>
+            <div style="display:flex;align-items:center;gap:8px;"><div style="width:12px;height:12px;border-radius:2px;background:var(--warning);"></div> Measurement</div>
+            <div style="display:flex;align-items:center;gap:8px;"><div style="width:12px;height:12px;border-radius:2px;background:rgba(99,102,241,0.3);border:1px solid var(--primary);"></div> Today</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== AI CHAT SECTION ===== -->
+  <section class="page-section" id="section-chat">
+    <div class="section-header" style="margin-bottom:16px;">
+      <h2>🤖 AI Coach</h2>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-ghost btn-sm" onclick="clearChat()">Clear Chat</button>
+        <button class="btn btn-ghost btn-sm" onclick="exportChat()">Export</button>
+      </div>
+    </div>
+
+    <div class="chat-api-banner" id="chatApiBanner">
+      <div style="font-size:2rem;margin-bottom:8px;">🤖</div>
+      <h3 style="margin-bottom:8px;">AI Coach Ready</h3>
+      <p style="font-size:0.88rem;color:var(--text-secondary);margin-bottom:12px;">Connect your OpenAI API key to activate real AI coaching. Until then, enjoy smart pre-built responses based on your profile.</p>
+      <button class="btn btn-primary btn-sm" onclick="showApiKeyInput()">🔑 Add API Key</button>
+      <span style="margin:0 10px;color:var(--text-muted);">or</span>
+      <button class="btn btn-secondary btn-sm" onclick="hideChatBanner()">Use Demo Mode</button>
+    </div>
+
+    <div id="apiKeyPanel" style="display:none;margin-bottom:16px;">
+      <div class="card">
+        <h4 style="margin-bottom:10px;">🔑 OpenAI API Key</h4>
+        <p style="font-size:0.82rem;color:var(--text-secondary);margin-bottom:12px;">Your API key is stored locally and never sent to our servers. Get yours at <a href="https://platform.openai.com" target="_blank" style="color:var(--primary-light);">platform.openai.com</a></p>
+        <div style="display:flex;gap:8px;">
+          <input type="password" class="input" id="apiKeyInput" placeholder="sk-..." style="flex:1;">
+          <button class="btn btn-primary" onclick="saveApiKey()">Save Key</button>
+          <button class="btn btn-ghost" onclick="hideApiKeyPanel()">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Suggested Questions -->
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;" id="suggestedQuestions">
+      <button class="btn btn-ghost btn-sm" onclick="askQuestion('What should I eat for muscle gain?')">🍗 Muscle gain diet?</button>
+      <button class="btn btn-ghost btn-sm" onclick="askQuestion('Create my weekly workout plan')">💪 Weekly plan?</button>
+      <button class="btn btn-ghost btn-sm" onclick="askQuestion('How much protein do I need daily?')">🥛 Daily protein?</button>
+      <button class="btn btn-ghost btn-sm" onclick="askQuestion('What supplements should I take?')">💊 Supplements?</button>
+      <button class="btn btn-ghost btn-sm" onclick="askQuestion('How to improve my sleep quality?')">😴 Better sleep?</button>
+      <button class="btn btn-ghost btn-sm" onclick="askQuestion('Analyze my progress this week')">📊 My progress?</button>
+    </div>
+
+    <div class="chat-container">
+      <div class="chat-messages" id="chatMessages"></div>
+      <div class="chat-input-area">
+        <textarea class="chat-input" id="chatInput" placeholder="Ask your AI coach anything..." rows="1" onkeydown="chatKeydown(event)" oninput="autoResizeChat(this)"></textarea>
+        <button class="btn btn-primary btn-icon" onclick="sendChatMessage()" id="chatSendBtn">➤</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== MY PLAN SECTION ===== -->
+  <section class="page-section" id="section-plan">
+    <div class="section-header">
+      <h2>📋 My Transformation Plan</h2>
+      <button class="btn btn-ghost btn-sm" onclick="exportPlan()">📄 Export PDF</button>
+    </div>
+    <div id="myPlanContent"></div>
+  </section>
+
+  <!-- ===== HABITS SECTION ===== -->
+  <section class="page-section" id="section-habits">
+    <div class="section-header">
+      <h2>✅ Daily Habits & Routines</h2>
+    </div>
+    <div class="tabs" style="margin-bottom:20px;">
+      <div class="tab active" onclick="showTab('habits','daily')">Daily Habits</div>
+      <div class="tab" onclick="showTab('habits','morning')">Morning Routine</div>
+      <div class="tab" onclick="showTab('habits','night')">Night Routine</div>
+    </div>
+    <div class="tab-content active" id="habits-daily">
+      <div id="habitsContent"></div>
+    </div>
+    <div class="tab-content" id="habits-morning">
+      <div id="morningRoutineContent"></div>
+    </div>
+    <div class="tab-content" id="habits-night">
+      <div id="nightRoutineContent"></div>
+    </div>
+  </section>
+
+  <!-- ===== NOTES/JOURNAL SECTION ===== -->
+  <section class="page-section" id="section-notes">
+    <div class="section-header">
+      <h2>📔 Journal & Notes</h2>
+      <button class="btn btn-primary btn-sm" onclick="TXUtils.modal.open('addNoteModal')">+ New Entry</button>
+    </div>
+    <div class="dashboard-grid-3">
+      <div style="grid-column:span 2;">
+        <div style="margin-bottom:16px;">
+          <div class="search-wrap">
+            <span class="search-icon">🔍</span>
+            <input type="text" class="search-input" id="notesSearch" placeholder="Search journal entries..." oninput="filterNotes(this.value)">
+          </div>
+        </div>
+        <div id="notesList"></div>
+      </div>
+      <div>
+        <div class="card">
+          <h4 style="margin-bottom:12px;">📊 Journal Stats</h4>
+          <div id="journalStats"></div>
+        </div>
+        <div class="card" style="margin-top:12px;">
+          <h4 style="margin-bottom:12px;">🏷️ Tags</h4>
+          <div id="notesTags"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== ACHIEVEMENTS SECTION ===== -->
+  <section class="page-section" id="section-achievements">
+    <div class="section-header">
+      <h2>🏆 Achievements & XP</h2>
+    </div>
+    <!-- XP Overview -->
+    <div class="card" style="margin-bottom:24px;background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(139,92,246,0.1));border-color:rgba(99,102,241,0.2);">
+      <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+        <div style="text-align:center;min-width:80px;">
+          <div style="font-size:3rem;" id="ach_levelBadge">🌱</div>
+          <div style="font-weight:800;font-size:1.1rem;" id="ach_levelName">Level 1</div>
+        </div>
+        <div style="flex:1;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+            <span style="font-weight:700;" id="ach_levelLabel">Beginner</span>
+            <span style="font-size:0.82rem;color:var(--text-muted);" id="ach_xpDisplay">0 XP</span>
+          </div>
+          <div class="xp-bar" style="height:12px;"><div class="xp-fill" id="ach_xpFill" style="width:0%;"></div></div>
+          <div style="font-size:0.78rem;color:var(--text-muted);margin-top:6px;" id="ach_nextLevel">Next level: 200 XP needed</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:1.5rem;font-weight:800;" id="ach_earnedCount">0</div>
+          <div style="font-size:0.75rem;color:var(--text-muted);">Badges Earned</div>
+        </div>
+      </div>
+    </div>
+    <div class="achievements-grid" id="achievementsGrid"></div>
+  </section>
+
+  <!-- ===== SUPPLEMENTS SECTION ===== -->
+  <section class="page-section" id="section-supplements">
+    <div class="section-header">
+      <h2>💊 Supplement Guide</h2>
+      <span class="badge badge-success">Evidence-Based Only</span>
+    </div>
+    <div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.15);border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:20px;">
+      <strong>📖 Note:</strong> <span style="color:var(--text-secondary);font-size:0.88rem;">All supplement recommendations are based on peer-reviewed research. Tier 1 = strongest evidence. Always consult your doctor before starting supplements, especially if you have medical conditions.</span>
+    </div>
+    <div id="supplementsList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;"></div>
+  </section>
+
+  <!-- ===== SETTINGS SECTION ===== -->
+  <section class="page-section" id="section-settings">
+    <div class="section-header">
+      <h2>⚙️ Settings & Profile</h2>
+    </div>
+    <div class="dashboard-grid-2">
+      <div>
+        <div class="card" style="margin-bottom:16px;">
+          <h3 style="margin-bottom:16px;">👤 Profile</h3>
+          <div id="settingsProfile"></div>
+        </div>
+        <div class="card">
+          <h3 style="margin-bottom:16px;">🎨 Appearance</h3>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+            <span>Dark Mode</span>
+            <div class="toggle on" id="darkModeToggle" onclick="toggleTheme()"></div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom:16px;">
+          <h3 style="margin-bottom:16px;">🔔 Notifications</h3>
+          <div id="notificationSettings"></div>
+        </div>
+        <div class="card">
+          <h3 style="margin-bottom:16px;">📤 Export Data</h3>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <button class="btn btn-secondary btn-full" onclick="exportWorkouts()">Export Workouts (CSV)</button>
+            <button class="btn btn-secondary btn-full" onclick="exportNutrition()">Export Nutrition (CSV)</button>
+            <button class="btn btn-secondary btn-full" onclick="exportMeasurements()">Export Measurements (CSV)</button>
+            <button class="btn btn-secondary btn-full" onclick="exportAll()">Export Everything (JSON)</button>
+          </div>
+        </div>
+        <div class="card" style="margin-top:16px;border-color:rgba(239,68,68,0.2);">
+          <h3 style="margin-bottom:12px;color:var(--error);">⚠️ Danger Zone</h3>
+          <button class="btn btn-danger btn-full" onclick="clearAllData()">Reset All Data</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ===== MODALS ===== -->
+
+<!-- Add Food Modal -->
+<div class="modal-overlay" id="addFoodModal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3 id="addFoodTitle">+ Log Food</h3>
+      <button class="modal-close" onclick="TXUtils.modal.close('addFoodModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="input-group" style="margin-bottom:12px;">
+        <label class="input-label">Meal Type</label>
+        <select class="select" id="mealTypeSelect">
+          <option value="Breakfast">🌅 Breakfast</option>
+          <option value="Lunch">☀️ Lunch</option>
+          <option value="Dinner">🌙 Dinner</option>
+          <option value="Snack">🍎 Snack</option>
+          <option value="Pre-Workout">💪 Pre-Workout</option>
+          <option value="Post-Workout">🏋️ Post-Workout</option>
+        </select>
+      </div>
+      <div class="search-wrap" style="margin-bottom:12px;">
+        <span class="search-icon">🔍</span>
+        <input type="text" class="search-input" id="foodModalSearch" placeholder="Search foods..." oninput="searchFoodModal(this.value)">
+      </div>
+      <div class="food-search-results" id="foodModalResults"></div>
+      <div id="selectedFoodSection" style="display:none;margin-top:16px;">
+        <div style="background:var(--bg-secondary);border-radius:var(--radius-sm);padding:14px;margin-bottom:12px;" id="selectedFoodInfo"></div>
+        <div style="display:flex;gap:12px;align-items:flex-end;">
+          <div class="input-group" style="flex:1;">
+            <label class="input-label" id="servingLabel">Quantity (g)</label>
+            <input type="number" class="input" id="foodQty" value="100" min="1" oninput="updateFoodCalc()">
+          </div>
+          <div style="text-align:center;min-width:80px;" id="calcResult">
+            <div style="font-size:1.4rem;font-weight:800;color:var(--primary);">0</div>
+            <div style="font-size:0.72rem;color:var(--text-muted);">calories</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="TXUtils.modal.close('addFoodModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmAddFood()" id="confirmFoodBtn" disabled>Add to Log</button>
+    </div>
+  </div>
+</div>
+
+<!-- Log Measurement Modal -->
+<div class="modal-overlay" id="logMeasurementModal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3>📏 Log Measurements</h3>
+      <button class="modal-close" onclick="TXUtils.modal.close('logMeasurementModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="measurements-grid">
+        ${TX_DATA.bodyParts.map(bp => `
+          <div class="input-group">
+            <label class="input-label">${bp.icon} ${bp.label} (${bp.unit})</label>
+            <input type="number" class="input" id="meas_${bp.key}" placeholder="—" step="0.1">
+          </div>
+        `).join('')}
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="TXUtils.modal.close('logMeasurementModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveMeasurements()">Save Measurements</button>
+    </div>
+  </div>
+</div>
+
+<!-- Exercise Detail Modal -->
+<div class="modal-overlay" id="exerciseModal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3 id="exerciseModalTitle">Exercise</h3>
+      <button class="modal-close" onclick="TXUtils.modal.close('exerciseModal')">✕</button>
+    </div>
+    <div class="modal-body" id="exerciseModalBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="TXUtils.modal.close('exerciseModal')">Close</button>
+      <button class="btn btn-primary" id="addToWorkoutBtn">Add to Workout</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Note Modal -->
+<div class="modal-overlay" id="addNoteModal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3 id="noteModalTitle">New Journal Entry</h3>
+      <button class="modal-close" onclick="TXUtils.modal.close('addNoteModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;gap:12px;margin-bottom:12px;align-items:center;flex-wrap:wrap;">
+        <div style="font-size:0.85rem;color:var(--text-muted);" id="noteDate"></div>
+        <div>
+          <span style="font-size:0.85rem;color:var(--text-muted);margin-right:6px;">Mood:</span>
+          ${['😞','😕','😐','🙂','😁'].map((m, i) => `<button onclick="selectNoteMood(${i+1})" style="font-size:1.3rem;background:none;border:none;cursor:pointer;opacity:0.4;transition:all 0.2s;" id="noteMood_${i+1}">${m}</button>`).join('')}
+        </div>
+        <input type="text" class="input" id="noteTags" placeholder="Tags (comma-separated: fitness, diet, motivation)" style="flex:1;min-width:200px;">
+      </div>
+      <input type="text" class="input" id="noteTitle" placeholder="Entry title..." style="margin-bottom:10px;font-weight:700;font-size:1rem;">
+      <textarea class="input" id="noteContent" placeholder="Write your thoughts, reflections, and notes here. Markdown is supported..." style="height:200px;font-size:0.9rem;line-height:1.7;"></textarea>
+      <div style="font-size:0.75rem;color:var(--text-muted);margin-top:6px;" id="noteAutoSaveStatus">Auto-saving...</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="TXUtils.modal.close('addNoteModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveJournalEntry()">Save Entry</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Photo Modal -->
+<div class="modal-overlay" id="addPhotoModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>📸 Add Progress Photos</h3>
+      <button class="modal-close" onclick="TXUtils.modal.close('addPhotoModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="photo-grid">
+        ${['Front','Back','Left','Right'].map(angle => `
+          <div class="photo-slot" id="modalPhoto_${angle}" onclick="document.getElementById('modalPhotoInput_${angle}').click()">
+            <input type="file" id="modalPhotoInput_${angle}" accept="image/*" style="display:none;" onchange="previewModalPhoto(this,'${angle}')">
+            <div style="text-align:center;"><div style="font-size:1.8rem;margin-bottom:6px;">📷</div><div style="font-size:0.78rem;color:var(--text-muted);">+ ${angle}</div></div>
+            <div class="photo-slot-label">${angle}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="TXUtils.modal.close('addPhotoModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveProgressPhotos()">Save Photos</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/utils.js"></script>
+<script>
+// ===== GLOBAL STATE =====
+let user, profile, aiPlan;
+let currentSection = 'dashboard';
+let activeWorkout = null;
+let restTimerInterval = null;
+let restTimerSeconds = 0;
+let currentCalYear, currentCalMonth;
+let selectedFood = null;
+let selectedMealType = 'Breakfast';
+let currentNoteId = null;
+let noteMood = 3;
+let photoData = {};
+let activeWorkoutExercises = [];
+let chatHistory = [];
+
+// ===== INIT =====
+function init() {
+  if (!TXUtils.auth.isLoggedIn()) { window.location.href = 'auth.html'; return; }
+  if (!TXUtils.auth.onboardingComplete()) { window.location.href = 'onboarding.html'; return; }
+
+  user = TXUtils.auth.getUser();
+  profile = TXUtils.storage.get('user_profile') || user.profile || {};
+  aiPlan = TXUtils.storage.get('ai_plan') || {};
+  TXUtils.theme.apply();
+  const theme = TXUtils.theme.get();
+  document.getElementById('themeBtn').textContent = theme === 'dark' ? '🌙' : '☀️';
+  document.getElementById('darkModeToggle').className = 'toggle ' + (theme === 'dark' ? 'on' : '');
+
+  updateSidebarUser();
+  updateXPBar();
+  updateStreak();
+  renderDashboard();
+
+  const today = new Date();
+  currentCalYear = today.getFullYear();
+  currentCalMonth = today.getMonth();
+}
+
+// ===== SIDEBAR / NAVIGATION =====
+function navigate(section) {
+  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+  const sectionEl = document.getElementById('section-' + section);
+  if (sectionEl) sectionEl.classList.add('active');
+  document.querySelector(`[data-section="${section}"]`)?.classList.add('active');
+
+  const titles = { dashboard: 'Dashboard', workout: 'Workout', nutrition: 'Nutrition', progress: 'Progress',
+    calendar: 'Calendar', chat: 'AI Coach', plan: 'My Plan', habits: 'Habits', notes: 'Journal',
+    achievements: 'Achievements', supplements: 'Supplements', settings: 'Settings' };
+  document.getElementById('headerTitle').textContent = titles[section] || section;
+  currentSection = section;
+
+  // Section-specific renders
+  const renders = {
+    dashboard: renderDashboard,
+    workout: renderWorkoutSection,
+    nutrition: renderNutritionSection,
+    progress: renderProgressSection,
+    calendar: renderCalendar,
+    chat: renderChat,
+    plan: renderPlan,
+    habits: renderHabitsSection,
+    notes: renderNotes,
+    achievements: renderAchievements,
+    supplements: renderSupplements,
+    settings: renderSettings,
+  };
+  if (renders[section]) renders[section]();
+  closeSidebar();
+}
+
+function showTab(section, tab) {
+  const prefix = section + '-';
+  document.querySelectorAll(`[id^="${prefix}"]`).forEach(el => {
+    if (el.classList.contains('tab-content')) el.classList.remove('active');
+  });
+  const targetTab = document.getElementById(prefix + tab);
+  if (targetTab) targetTab.classList.add('active');
+
+  // Update tab buttons
+  const tabContainer = section === 'workout' ? document.getElementById('workoutTabs') : null;
+  if (tabContainer) {
+    tabContainer.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  }
+}
+
+function openSidebar() {
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('sidebarOverlay').classList.add('active');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('active');
+}
+
+// ===== SIDEBAR USER =====
+function updateSidebarUser() {
+  const name = (profile.firstName || user.firstName || 'User') + ' ' + (profile.lastName || user.lastName || '');
+  document.getElementById('userName').textContent = name.trim() || 'User';
+  document.getElementById('userEmail').textContent = user.email || 'TransformX AI';
+  const initials = ((profile.firstName || user.firstName || '?')[0] + ((profile.lastName || user.lastName || '')[0] || '')).toUpperCase();
+  document.getElementById('userAvatar').textContent = initials || '?';
+}
+
+function updateXPBar() {
+  const xp = TXUtils.xp.get();
+  const level = TXUtils.xp.getLevel(xp);
+  const nextLevel = TXUtils.xp.getNextLevel(xp);
+  const pct = nextLevel ? Math.round(((xp - level.xp_required) / (nextLevel.xp_required - level.xp_required)) * 100) : 100;
+  document.getElementById('xpLevel').textContent = `Level ${level.level} ${level.badge}`;
+  document.getElementById('xpAmount').textContent = xp + ' XP';
+  document.getElementById('xpFill').style.width = pct + '%';
+}
+
+function updateStreak() {
+  const streak = TXUtils.streak.get();
+  document.getElementById('streakCount').textContent = streak;
+}
+
+// ===== THEME =====
+function toggleTheme() {
+  const newTheme = TXUtils.theme.toggle();
+  document.getElementById('themeBtn').textContent = newTheme === 'dark' ? '🌙' : '☀️';
+  document.getElementById('darkModeToggle').className = 'toggle ' + (newTheme === 'dark' ? 'on' : '');
+}
+
+// ===== DASHBOARD =====
+function renderDashboard() {
+  const timeData = TXUtils.date.timeOfDay();
+  const name = profile.firstName || user.firstName || 'Champion';
+  const streak = TXUtils.streak.get();
+  const today = TXUtils.date.today();
+  const waterGlasses = TXUtils.water.getLog(today);
+  const nutLog = TXUtils.nutrition.getLog(today);
+  const totals = TXUtils.nutrition.getTotals(nutLog);
+  const targetCals = aiPlan.targetCalories || 2000;
+  const macros = aiPlan.macros || { protein: 150, carbs: 200, fat: 55 };
+  const xp = TXUtils.xp.get();
+  const level = TXUtils.xp.getLevel(xp);
+
+  // Greeting
+  document.getElementById('dashboardGreeting').innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+      <div>
+        <div style="font-size:0.88rem;color:var(--text-muted);">${TXUtils.date.todayLabel()}</div>
+        <h1 style="font-size:1.8rem;margin-top:4px;">${timeData.greeting}, <span class="text-gradient">${name}</span>! ${timeData.label === 'morning' ? '🌅' : timeData.label === 'evening' ? '🌆' : timeData.label === 'night' ? '🌙' : '☀️'}</h1>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <div class="streak-display">
+          <span class="streak-flame">🔥</span>
+          <span style="font-size:1.2rem;font-weight:800;">${streak}</span>
+          <span style="font-size:0.78rem;color:var(--text-muted);">day streak</span>
+        </div>
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 16px;display:flex;align-items:center;gap:8px;">
+          <span style="font-size:1.1rem;">${level.badge}</span>
+          <span style="font-size:0.82rem;font-weight:700;">Level ${level.level} — ${level.name}</span>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Stats Cards
+  const caloriesLeft = Math.max(0, targetCals - totals.calories);
+  document.getElementById('dashboardStats').innerHTML = `
+    <div class="stat-card primary">
+      <div class="stat-icon" style="background:rgba(99,102,241,0.15);">🔥</div>
+      <div class="stat-value">${caloriesLeft.toLocaleString()}</div>
+      <div class="stat-label">Calories Remaining</div>
+      <div class="stat-change ${caloriesLeft < 500 ? 'up' : ''}">
+        ${totals.calories}/${targetCals} kcal consumed
+      </div>
+    </div>
+    <div class="stat-card success">
+      <div class="stat-icon" style="background:rgba(16,185,129,0.15);">💪</div>
+      <div class="stat-value">${totals.protein}g</div>
+      <div class="stat-label">Protein Today</div>
+      <div class="stat-change ${totals.protein >= macros.protein ? 'up' : ''}">
+        Goal: ${macros.protein}g ${totals.protein >= macros.protein ? '✓' : ''}
+      </div>
+    </div>
+    <div class="stat-card warning">
+      <div class="stat-icon" style="background:rgba(6,182,212,0.15);">💧</div>
+      <div class="stat-value">${waterGlasses}</div>
+      <div class="stat-label">Glasses of Water</div>
+      <div class="stat-change ${waterGlasses >= 8 ? 'up' : ''}">
+        ${(waterGlasses * 0.25).toFixed(1)}L / 2L goal
+      </div>
+    </div>
+    <div class="stat-card error">
+      <div class="stat-icon" style="background:rgba(245,158,11,0.15);">⭐</div>
+      <div class="stat-value">${xp.toLocaleString()}</div>
+      <div class="stat-label">Total XP</div>
+      <div class="stat-change up">Level ${level.level} • ${level.name}</div>
+    </div>
+  `;
+
+  // Today's Workout
+  const workoutPlan = aiPlan.workout_plan;
+  const dayOfWeek = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][new Date().getDay()];
+  const todayPlanDay = workoutPlan?.schedule?.find(s => s.day === dayOfWeek);
+
+  document.getElementById('todayWorkoutContent').innerHTML = todayPlanDay && todayPlanDay.exercises.length > 0 ? `
+    <div class="badge badge-primary" style="margin-bottom:12px;">${workoutPlan.name}</div>
+    <h4 style="margin-bottom:12px;">${todayPlanDay.name}</h4>
+    ${todayPlanDay.exercises.slice(0,4).map(eid => {
+      const ex = TX_DATA.exercises.find(e => e.id === eid);
+      return ex ? `
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
+          <span style="font-size:1.3rem;">${ex.icon}</span>
+          <div style="flex:1;">
+            <div style="font-size:0.85rem;font-weight:600;">${ex.name}</div>
+            <div style="font-size:0.75rem;color:var(--text-muted);">${ex.sets} sets × ${ex.reps} reps • ${ex.rest}s rest</div>
+          </div>
+        </div>
+      ` : '';
+    }).join('')}
+    ${todayPlanDay.exercises.length > 4 ? `<div style="font-size:0.78rem;color:var(--text-muted);padding-top:8px;">+${todayPlanDay.exercises.length - 4} more exercises</div>` : ''}
+  ` : `
+    <div class="empty-state" style="padding:20px;">
+      <div style="font-size:2rem;">😴</div>
+      <div style="font-size:0.85rem;color:var(--text-muted);margin-top:8px;">${dayOfWeek} is a rest day. Recover well!</div>
+    </div>
+  `;
+
+  // Water drops
+  renderWaterDrops();
+
+  // Mood
+  const savedMood = TXUtils.storage.get('mood_' + today);
+  if (savedMood) { setMoodDisplay(savedMood.value, savedMood.emoji); }
+
+  // Quick note
+  const savedNote = TXUtils.storage.get('quick_note_' + today);
+  if (savedNote) { document.getElementById('quickNote').value = savedNote; }
+
+  // Charts (after a tick to ensure canvas is visible)
+  setTimeout(() => {
+    renderWeightChart();
+    renderMacroChart(totals, macros, targetCals);
+  }, 100);
+
+  // Recent Achievements
+  const earned = TXUtils.achievements.getEarned();
+  const earnedAchs = TX_DATA.achievements.filter(a => earned.includes(a.id)).slice(0, 3);
+  document.getElementById('recentAchievements').innerHTML = earnedAchs.length ? earnedAchs.map(a => `
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);">
+      <div style="font-size:1.5rem;">${a.icon}</div>
+      <div style="flex:1;">
+        <div style="font-size:0.85rem;font-weight:700;">${a.name}</div>
+        <div style="font-size:0.75rem;color:var(--text-muted);">${a.desc}</div>
+      </div>
+      <div class="badge badge-warning">+${a.xp} XP</div>
+    </div>
+  `).join('') : `
+    <div class="empty-state" style="padding:20px;">
+      <div style="font-size:2rem;">🎯</div>
+      <p style="font-size:0.82rem;margin-top:8px;">Complete workouts to earn achievements!</p>
+    </div>
+  `;
+
+  // Habits Today
+  const todayHabits = TXUtils.storage.get('habits_' + today) || [];
+  const habits = TX_DATA.habits.slice(0, 6);
+  const done = habits.filter(h => todayHabits.includes(h.id)).length;
+  document.getElementById('habitScore').textContent = `${done}/${habits.length} done`;
+  document.getElementById('habitsToday').innerHTML = habits.map(h => `
+    <div class="habit-row">
+      <div class="habit-check ${todayHabits.includes(h.id) ? 'done' : ''}" onclick="toggleDashHabit('${h.id}', this)">
+        ${todayHabits.includes(h.id) ? '✓' : ''}
+      </div>
+      <div style="flex:1;">
+        <div style="font-size:0.85rem;font-weight:600;">${h.icon} ${h.name}</div>
+      </div>
+      <div class="badge badge-primary" style="font-size:0.65rem;">+${h.xp} XP</div>
+    </div>
+  `).join('');
+}
+
+function toggleDashHabit(habitId, el) {
+  const today = TXUtils.date.today();
+  let habits = TXUtils.storage.get('habits_' + today) || [];
+  const idx = habits.indexOf(habitId);
+  if (idx >= 0) { habits.splice(idx, 1); el.classList.remove('done'); el.textContent = ''; }
+  else {
+    habits.push(habitId);
+    el.classList.add('done');
+    el.textContent = '✓';
+    const habit = TX_DATA.habits.find(h => h.id === habitId);
+    if (habit) TXUtils.xp.add(habit.xp, 'Habit: ' + habit.name);
+  }
+  TXUtils.storage.set('habits_' + today, habits);
+  const done = TX_DATA.habits.slice(0,6).filter(h => habits.includes(h.id)).length;
+  document.getElementById('habitScore').textContent = `${done}/6 done`;
+}
+
+function renderWaterDrops() {
+  const today = TXUtils.date.today();
+  const glasses = TXUtils.water.getLog(today);
+  const container = document.getElementById('waterDrops');
+  if (!container) return;
+  container.innerHTML = Array.from({length: 8}, (_, i) => `
+    <div class="water-drop ${i < glasses ? 'filled' : ''}" onclick="toggleWaterDrop(${i})" title="${i+1} glass${i+1>1?'es':''}"></div>
+  `).join('');
+  const amountEl = document.getElementById('waterAmount');
+  if (amountEl) amountEl.textContent = `${glasses}/8 glasses`;
+}
+
+function toggleWaterDrop(index) {
+  const today = TXUtils.date.today();
+  const current = TXUtils.water.getLog(today);
+  const newVal = index < current ? index : index + 1;
+  TXUtils.water.log(today, newVal);
+  renderWaterDrops();
+  const nutWater = document.getElementById('nutWaterDisplay');
+  if (nutWater) nutWater.textContent = (newVal * 0.25).toFixed(2) + 'L';
+}
+
+function addWater() {
+  const today = TXUtils.date.today();
+  const newVal = TXUtils.water.addGlass(today);
+  renderWaterDrops();
+  TXUtils.toast.success(`💧 ${newVal}/8 glasses — Keep it up!`);
+}
+function removeWater() {
+  const today = TXUtils.date.today();
+  TXUtils.water.removeGlass(today);
+  renderWaterDrops();
+}
+
+function setMood(value, emoji) {
+  const today = TXUtils.date.today();
+  TXUtils.storage.set('mood_' + today, { value, emoji });
+  setMoodDisplay(value, emoji);
+  TXUtils.xp.add(5, 'Logged mood');
+}
+function setMoodDisplay(value, emoji) {
+  document.querySelectorAll('[id^="mood_"]').forEach((btn, i) => {
+    btn.style.opacity = (i + 1) === value ? '1' : '0.3';
+    btn.style.transform = (i + 1) === value ? 'scale(1.3)' : '';
+  });
+  const saved = document.getElementById('moodSaved');
+  if (saved) saved.textContent = emoji + ' Mood logged';
+}
+
+function saveQuickNote(val) {
+  const today = TXUtils.date.today();
+  TXUtils.storage.set('quick_note_' + today, val);
+}
+function saveNote() {
+  const val = document.getElementById('quickNote')?.value;
+  if (!val || !val.trim()) { TXUtils.toast.warning('Write something first!'); return; }
+  const entry = {
+    id: 'note_' + Date.now(),
+    title: 'Quick Note — ' + TXUtils.date.formatShort(TXUtils.date.today()),
+    content: val,
+    mood: 3, tags: ['quick-note'],
+    date: TXUtils.date.today(),
+    timestamp: Date.now()
+  };
+  TXUtils.journal.save(entry);
+  TXUtils.toast.success('Note saved to journal!');
+  TXUtils.xp.add(15, 'Wrote a journal entry');
+}
+
+function renderWeightChart() {
+  const measurements = TXUtils.measurements.getAll();
+  if (measurements.length === 0) {
+    // Show sample data
+    const labels = ['Week 1','Week 2','Week 3','Week 4','Week 5','Week 6','Week 7','Week 8'];
+    const current = profile.weight || 75;
+    const target = profile.targetWeight || 70;
+    const data = labels.map((_, i) => +(current - (i * (current-target)/8)).toFixed(1));
+    TXUtils.charts.line('weightChart', labels, [{ label: 'Weight (kg)', data, color: '#6366f1', bgColor: 'rgba(99,102,241,0.1)', fill: true }]);
+    document.getElementById('weightTrend').textContent = 'Sample Data';
+    return;
+  }
+  const last12 = measurements.slice(-12);
+  const labels = last12.map(m => TXUtils.date.formatShort(m.date));
+  const weights = last12.map(m => m.weight || null).filter(Boolean);
+  const trend = weights.length >= 2 ? (weights[weights.length-1] - weights[0]).toFixed(1) : 0;
+  document.getElementById('weightTrend').textContent = trend > 0 ? `+${trend}kg` : `${trend}kg`;
+  document.getElementById('weightTrend').className = `badge ${parseFloat(trend) < 0 ? 'badge-success' : 'badge-warning'}`;
+  TXUtils.charts.line('weightChart', labels, [{ label: 'Weight (kg)', data: last12.map(m => m.weight), color: '#6366f1', bgColor: 'rgba(99,102,241,0.1)', fill: true }]);
+}
+
+function renderMacroChart(totals, macros, targetCals) {
+  const remaining = Math.max(0, targetCals - totals.calories);
+  TXUtils.charts.doughnut('macroChart',
+    ['Protein','Carbs','Fat','Remaining'],
+    [totals.protein * 4, totals.carbs * 4, totals.fat * 9, remaining],
+    ['#10b981','#6366f1','#f59e0b','rgba(255,255,255,0.05)']
+  );
+
+  document.getElementById('macroDetails').innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <div><div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:4px;">
+        <span style="color:var(--success);">💪 Protein</span><span><strong>${totals.protein}</strong>/${macros.protein}g</span>
+      </div><div class="progress-wrap"><div class="progress-bar" style="width:${TXUtils.fmt.pct(totals.protein, macros.protein)}%;background:var(--success);"></div></div></div>
+      <div><div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:4px;">
+        <span style="color:var(--primary-light);">🌾 Carbs</span><span><strong>${totals.carbs}</strong>/${macros.carbs}g</span>
+      </div><div class="progress-wrap"><div class="progress-bar" style="width:${TXUtils.fmt.pct(totals.carbs, macros.carbs)}%;background:var(--primary);"></div></div></div>
+      <div><div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:4px;">
+        <span style="color:var(--warning);">🥑 Fat</span><span><strong>${totals.fat}</strong>/${macros.fat}g</span>
+      </div><div class="progress-wrap"><div class="progress-bar" style="width:${TXUtils.fmt.pct(totals.fat, macros.fat)}%;background:var(--warning);"></div></div></div>
+      <div style="font-size:0.82rem;color:var(--text-muted);margin-top:8px;text-align:center;">
+        🔥 ${totals.calories} / ${targetCals} kcal consumed
+      </div>
+    </div>
+  `;
+}
+
+// ===== WORKOUT SECTION =====
+function renderWorkoutSection() {
+  const workoutPlan = aiPlan.workout_plan;
+  const dayOfWeek = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][new Date().getDay()];
+  const todayPlanDay = workoutPlan?.schedule?.find(s => s.day === dayOfWeek);
+
+  document.getElementById('workoutTodayPlan').innerHTML = `
+    <div class="card" style="margin-bottom:16px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+        <div>
+          <div class="badge badge-primary" style="margin-bottom:6px;">${workoutPlan?.name || 'Custom Plan'}</div>
+          <h3>${dayOfWeek} — ${todayPlanDay?.name || 'Rest Day'}</h3>
+        </div>
+        ${todayPlanDay?.exercises?.length > 0 ? `<button class="btn btn-primary" onclick="startWorkout()">▶ Start</button>` : ''}
+      </div>
+      ${todayPlanDay?.exercises?.length > 0 ? todayPlanDay.exercises.map(eid => {
+        const ex = TX_DATA.exercises.find(e => e.id === eid);
+        return ex ? `
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);">
+            <div style="font-size:1.5rem;width:36px;text-align:center;">${ex.icon}</div>
+            <div style="flex:1;">
+              <div style="font-weight:600;">${ex.name}</div>
+              <div style="font-size:0.78rem;color:var(--text-muted);">${ex.sets} sets × ${ex.reps} • ${ex.rest}s rest • ${ex.equipment}</div>
+            </div>
+            <div class="badge badge-${ex.difficulty==='Beginner'?'success':ex.difficulty==='Intermediate'?'warning':'error'}">${ex.difficulty}</div>
+            <button class="btn btn-sm btn-ghost" onclick="showExerciseDetail('${ex.id}')">Details</button>
+          </div>
+        ` : '';
+      }).join('') : `
+        <div class="empty-state" style="padding:20px;">
+          <div style="font-size:3rem;">😴</div>
+          <h4 style="margin:10px 0 6px;">Rest Day</h4>
+          <p style="font-size:0.85rem;color:var(--text-muted);">Recovery is when muscles grow. Rest well today.</p>
+          <button class="btn btn-secondary btn-sm" style="margin-top:12px;" onclick="showTab('workout','library')">Browse Exercises</button>
+        </div>
+      `}
+    </div>
+  `;
+
+  renderExerciseLibrary();
+  renderWorkoutHistory();
+  renderWeeklyVolumeChart();
+  renderPRs();
+}
+
+function renderExerciseLibrary() {
+  filterExercises();
+}
+
+function filterExercises(query) {
+  const q = (document.getElementById('exerciseSearch')?.value || query || '').toLowerCase();
+  const cat = document.getElementById('categoryFilter')?.value || '';
+  const diff = document.getElementById('difficultyFilter')?.value || '';
+
+  let filtered = TX_DATA.exercises.filter(ex =>
+    (!q || ex.name.toLowerCase().includes(q) || ex.muscle.toLowerCase().includes(q)) &&
+    (!cat || ex.category === cat) &&
+    (!diff || ex.difficulty === diff)
+  );
+
+  const grid = document.getElementById('exerciseGrid');
+  if (!grid) return;
+  grid.innerHTML = filtered.map(ex => `
+    <div class="exercise-card" onclick="showExerciseDetail('${ex.id}')">
+      <div class="exercise-thumb">${ex.icon}</div>
+      <h4 style="margin-bottom:4px;font-size:0.9rem;">${ex.name}</h4>
+      <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:8px;">${ex.muscle}</div>
+      <div style="display:flex;gap:4px;flex-wrap:wrap;">
+        <span class="badge badge-${ex.category==='Cardio'?'info':ex.category==='Core'?'orange':ex.category==='Mobility'?'success':'primary'}" style="font-size:0.62rem;">${ex.category}</span>
+        <span class="badge badge-${ex.difficulty==='Beginner'?'success':ex.difficulty==='Intermediate'?'warning':'error'}" style="font-size:0.62rem;">${ex.difficulty}</span>
+      </div>
+      <div style="font-size:0.75rem;color:var(--text-muted);margin-top:8px;">⚙️ ${ex.equipment}</div>
+    </div>
+  `).join('');
+  if (!filtered.length) grid.innerHTML = '<div class="empty-state"><div class="empty-icon">🔍</div><p>No exercises found</p></div>';
+}
+
+function showExerciseDetail(id) {
+  const ex = TX_DATA.exercises.find(e => e.id === id);
+  if (!ex) return;
+  document.getElementById('exerciseModalTitle').textContent = ex.icon + ' ' + ex.name;
+  document.getElementById('exerciseModalBody').innerHTML = `
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+      <span class="badge badge-primary">${ex.category}</span>
+      <span class="badge badge-${ex.difficulty==='Beginner'?'success':ex.difficulty==='Intermediate'?'warning':'error'}">${ex.difficulty}</span>
+      <span class="badge badge-info">${ex.equipment}</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;">
+      <div style="background:var(--bg-secondary);border-radius:var(--radius-sm);padding:12px;text-align:center;">
+        <div style="font-size:1.3rem;font-weight:800;">${ex.sets}</div>
+        <div style="font-size:0.72rem;color:var(--text-muted);">Sets</div>
+      </div>
+      <div style="background:var(--bg-secondary);border-radius:var(--radius-sm);padding:12px;text-align:center;">
+        <div style="font-size:1.3rem;font-weight:800;">${ex.reps}</div>
+        <div style="font-size:0.72rem;color:var(--text-muted);">Reps</div>
+      </div>
+      <div style="background:var(--bg-secondary);border-radius:var(--radius-sm);padding:12px;text-align:center;">
+        <div style="font-size:1.3rem;font-weight:800;">${ex.rest}s</div>
+        <div style="font-size:0.72rem;color:var(--text-muted);">Rest</div>
+      </div>
+    </div>
+    <div style="margin-bottom:16px;">
+      <h4 style="margin-bottom:8px;">🎯 Primary Muscle</h4>
+      <p style="font-size:0.88rem;">${ex.muscle}</p>
+      ${ex.secondary ? `<p style="font-size:0.82rem;color:var(--text-muted);margin-top:4px;">Secondary: ${ex.secondary}</p>` : ''}
+    </div>
+    <div style="margin-bottom:16px;">
+      <h4 style="margin-bottom:8px;">📋 Instructions</h4>
+      <ol style="padding-left:20px;font-size:0.88rem;line-height:1.8;">
+        ${(ex.instructions || []).map(ins => `<li>${ins}</li>`).join('')}
+      </ol>
+    </div>
+    <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.15);border-radius:var(--radius-sm);padding:12px 16px;">
+      <div style="font-size:0.8rem;font-weight:700;color:var(--warning);margin-bottom:4px;">💡 Pro Tip</div>
+      <p style="font-size:0.85rem;color:var(--text-secondary);">${ex.tips}</p>
+    </div>
+  `;
+  document.getElementById('addToWorkoutBtn').onclick = () => {
+    addExerciseToActiveWorkout(ex);
+    TXUtils.modal.close('exerciseModal');
+    showTab('workout', 'log');
+  };
+  TXUtils.modal.open('exerciseModal');
+}
+
+// ===== ACTIVE WORKOUT =====
+let activeWorkoutData = { id: null, name: '', exercises: [], startTime: null };
+
+function startWorkout() {
+  const workoutPlan = aiPlan.workout_plan;
+  const dayOfWeek = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][new Date().getDay()];
+  const todayPlanDay = workoutPlan?.schedule?.find(s => s.day === dayOfWeek);
+
+  activeWorkoutData = {
+    id: 'workout_' + Date.now(),
+    name: todayPlanDay?.name || 'Custom Workout',
+    plan: workoutPlan?.name || 'Custom',
+    exercises: (todayPlanDay?.exercises || []).map(eid => {
+      const ex = TX_DATA.exercises.find(e => e.id === eid);
+      if (!ex) return null;
+      return { ...ex, sets_data: Array.from({length: ex.sets}, () => ({ weight: '', reps: '', done: false })) };
+    }).filter(Boolean),
+    startTime: Date.now(),
+    date: TXUtils.date.today()
+  };
+
+  TXUtils.streak.update();
+  navigate('workout');
+  showTab('workout', 'log');
+  renderActiveWorkout();
+}
+
+function renderActiveWorkout() {
+  const container = document.getElementById('activeWorkoutLogger');
+  if (!activeWorkoutData.id) { return; }
+
+  const elapsed = Math.floor((Date.now() - activeWorkoutData.startTime) / 1000);
+  container.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+      <div>
+        <div class="badge badge-primary" style="margin-bottom:4px;">${activeWorkoutData.plan}</div>
+        <h3>${activeWorkoutData.name}</h3>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <div class="active-timer" style="font-size:1.2rem;" id="workoutTimerDisplay">${TXUtils.fmt.duration(elapsed)}</div>
+        <button class="btn btn-success btn-sm" onclick="finishWorkout()">✓ Finish</button>
+        <button class="btn btn-danger btn-sm" onclick="cancelWorkout()">Cancel</button>
+      </div>
+    </div>
+    ${activeWorkoutData.exercises.map((ex, exIdx) => `
+      <div class="card" style="margin-bottom:12px;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+          <span style="font-size:1.4rem;">${ex.icon}</span>
+          <div style="flex:1;">
+            <h4>${ex.name}</h4>
+            <div style="font-size:0.75rem;color:var(--text-muted);">${ex.muscle} • ${ex.equipment}</div>
+          </div>
+          <div id="prBadge_${exIdx}"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:40px 1fr 1fr 1fr auto;gap:8px;align-items:center;margin-bottom:4px;">
+          <span style="font-size:0.72rem;color:var(--text-muted);text-align:center;">SET</span>
+          <span style="font-size:0.72rem;color:var(--text-muted);text-align:center;">WEIGHT (kg)</span>
+          <span style="font-size:0.72rem;color:var(--text-muted);text-align:center;">REPS</span>
+          <span style="font-size:0.72rem;color:var(--text-muted);text-align:center;">PREVIOUS</span>
+          <span></span>
+        </div>
+        ${ex.sets_data.map((set, setIdx) => {
+          const prs = TXUtils.workouts.getPRs();
+          const prKey = ex.name.toLowerCase().replace(/\s+/g, '_');
+          const prev = prs[prKey];
+          return `
+          <div class="set-row ${set.done ? 'completed' : ''}" id="setRow_${exIdx}_${setIdx}">
+            <div class="set-number">${setIdx + 1}</div>
+            <input type="number" class="workout-set-input" placeholder="kg" value="${set.weight || ''}"
+              oninput="updateSet(${exIdx}, ${setIdx}, 'weight', this.value)" ${set.done ? 'disabled' : ''}>
+            <input type="number" class="workout-set-input" placeholder="reps" value="${set.reps || ''}"
+              oninput="updateSet(${exIdx}, ${setIdx}, 'reps', this.value)" ${set.done ? 'disabled' : ''}>
+            <div style="font-size:0.75rem;color:var(--text-muted);text-align:center;">
+              ${prev ? `${prev.weight}kg × ${prev.reps}` : '—'}
+            </div>
+            <button class="btn btn-sm ${set.done ? 'btn-success' : 'btn-ghost'}" onclick="toggleSet(${exIdx}, ${setIdx}, this)">
+              ${set.done ? '✓' : '○'}
+            </button>
+          </div>`;
+        }).join('')}
+        <div style="display:flex;gap:8px;margin-top:8px;">
+          <button class="btn btn-sm btn-ghost" onclick="addSet(${exIdx})">+ Add Set</button>
+          <button class="btn btn-sm btn-ghost" onclick="startRestTimer(${ex.rest})">⏱ Rest ${ex.rest}s</button>
+        </div>
+      </div>
+    `).join('')}
+    ${activeWorkoutData.exercises.length === 0 ? `
+      <div class="empty-state">
+        <div class="empty-icon">💪</div>
+        <h4>Add exercises to your workout</h4>
+        <button class="btn btn-primary btn-sm" style="margin-top:12px;" onclick="showTab('workout','library')">Browse Library</button>
+      </div>
+    ` : ''}
+  `;
+
+  // Start workout timer
+  if (!window._workoutTimer) {
+    window._workoutTimer = setInterval(() => {
+      const el = document.getElementById('workoutTimerDisplay');
+      if (el && activeWorkoutData.startTime) {
+        const elapsed = Math.floor((Date.now() - activeWorkoutData.startTime) / 1000);
+        el.textContent = TXUtils.fmt.duration(elapsed);
+      }
+    }, 1000);
+  }
+
+  // Show rest timer card
+  document.getElementById('restTimerCard').style.display = 'none';
+}
+
+function updateSet(exIdx, setIdx, field, value) {
+  if (activeWorkoutData.exercises[exIdx]) {
+    activeWorkoutData.exercises[exIdx].sets_data[setIdx][field] = parseFloat(value) || value;
+  }
+}
+
+function toggleSet(exIdx, setIdx, btn) {
+  if (!activeWorkoutData.exercises[exIdx]) return;
+  const set = activeWorkoutData.exercises[exIdx].sets_data[setIdx];
+  set.done = !set.done;
+  const row = document.getElementById(`setRow_${exIdx}_${setIdx}`);
+  if (row) row.classList.toggle('completed', set.done);
+  if (btn) { btn.textContent = set.done ? '✓' : '○'; btn.className = `btn btn-sm ${set.done ? 'btn-success' : 'btn-ghost'}`; }
+
+  if (set.done && set.weight && set.reps) {
+    const ex = activeWorkoutData.exercises[exIdx];
+    const isPR = TXUtils.workouts.checkAndSetPR(ex.name, parseFloat(set.weight), parseFloat(set.reps));
+    if (isPR) {
+      const prBadge = document.getElementById(`prBadge_${exIdx}`);
+      if (prBadge) prBadge.innerHTML = '<span class="pr-badge">🏆 NEW PR!</span>';
+      TXUtils.toast.success(`🏆 NEW PERSONAL RECORD on ${ex.name}! ${set.weight}kg × ${set.reps} reps`);
+    }
+    startRestTimer(ex.rest);
+    TXUtils.xp.add(10, 'Completed set');
+  }
+}
+
+function addSet(exIdx) {
+  if (activeWorkoutData.exercises[exIdx]) {
+    activeWorkoutData.exercises[exIdx].sets_data.push({ weight: '', reps: '', done: false });
+    renderActiveWorkout();
+  }
+}
+
+function addExerciseToActiveWorkout(ex) {
+  if (!activeWorkoutData.id) {
+    activeWorkoutData = { id: 'workout_' + Date.now(), name: 'Custom Workout', plan: 'Custom', exercises: [], startTime: Date.now(), date: TXUtils.date.today() };
+  }
+  activeWorkoutData.exercises.push({ ...ex, sets_data: Array.from({length: ex.sets}, () => ({ weight: '', reps: '', done: false })) });
+  renderActiveWorkout();
+  TXUtils.toast.success(`${ex.name} added to workout!`);
+}
+
+function finishWorkout() {
+  if (!activeWorkoutData.id) return;
+  const duration = Math.floor((Date.now() - activeWorkoutData.startTime) / 1000);
+  const totalSets = activeWorkoutData.exercises.reduce((acc, ex) => acc + ex.sets_data.filter(s => s.done).length, 0);
+  const totalVolume = activeWorkoutData.exercises.reduce((acc, ex) => acc + TXUtils.fitness.volumeKg(ex.sets_data.filter(s => s.done)), 0);
+
+  const session = { ...activeWorkoutData, duration, totalSets, totalVolume: Math.round(totalVolume), finished_at: new Date().toISOString() };
+  TXUtils.workouts.saveSession(session);
+
+  clearInterval(window._workoutTimer);
+  window._workoutTimer = null;
+  activeWorkoutData = { id: null, name: '', exercises: [], startTime: null };
+
+  TXUtils.toast.success(`💪 Workout complete! ${totalSets} sets, ${totalVolume.toFixed(0)}kg volume, ${TXUtils.fmt.duration(duration)}`);
+  TXUtils.xp.add(100, 'Completed a workout session');
+  navigate('workout');
+  showTab('workout', 'history');
+  renderWorkoutHistory();
+}
+
+function cancelWorkout() {
+  if (!confirm('Cancel this workout? Progress will not be saved.')) return;
+  clearInterval(window._workoutTimer);
+  window._workoutTimer = null;
+  activeWorkoutData = { id: null, name: '', exercises: [], startTime: null };
+  renderActiveWorkout();
+  TXUtils.toast.info('Workout cancelled');
+}
+
+// ===== REST TIMER =====
+function startRestTimer(seconds) {
+  restTimerSeconds = seconds;
+  document.getElementById('restTimerCard').style.display = 'block';
+  document.getElementById('restTimerDisplay').textContent = TXUtils.fmt.duration(seconds);
+  clearInterval(restTimerInterval);
+  restTimerInterval = setInterval(() => {
+    restTimerSeconds--;
+    const el = document.getElementById('restTimerDisplay');
+    if (el) el.textContent = TXUtils.fmt.duration(restTimerSeconds);
+    if (restTimerSeconds <= 0) {
+      clearInterval(restTimerInterval);
+      document.getElementById('restTimerCard').style.display = 'none';
+      TXUtils.toast.info('⏱️ Rest time over! Start your next set.');
+      // Play a simple beep
+      try { const ctx = new AudioContext(); const o = ctx.createOscillator(); const g = ctx.createGain(); o.connect(g); g.connect(ctx.destination); o.frequency.value = 880; g.gain.setValueAtTime(0.3, ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5); o.start(); o.stop(ctx.currentTime + 0.5); } catch(e){}
+    }
+  }, 1000);
+}
+
+function setRestTimer(s) { startRestTimer(s); }
+function stopRestTimer() {
+  clearInterval(restTimerInterval);
+  document.getElementById('restTimerCard').style.display = 'none';
+}
+
+function renderWeeklyVolumeChart() {
+  const history = TXUtils.workouts.getHistory();
+  const last7 = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const dateStr = d.toISOString().split('T')[0];
+    const session = history.find(h => h.date === dateStr);
+    last7.push({ day: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()], volume: session ? session.totalVolume || 0 : 0 });
+  }
+  setTimeout(() => {
+    TXUtils.charts.bar('weeklyVolumeChart', last7.map(d => d.day), [{ data: last7.map(d => d.volume), color: 'rgba(99,102,241,0.7)', label: 'Volume (kg)' }]);
+  }, 100);
+}
+
+function renderPRs() {
+  const prs = TXUtils.workouts.getPRs();
+  const prList = document.getElementById('recentPRs');
+  if (!prList) return;
+  const keys = Object.keys(prs);
+  if (!keys.length) { prList.innerHTML = '<p style="font-size:0.82rem;color:var(--text-muted);">Log workouts to track Personal Records!</p>'; return; }
+  prList.innerHTML = keys.slice(0, 4).map(k => {
+    const pr = prs[k];
+    const name = k.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    return `
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
+        <span class="pr-badge">PR</span>
+        <div style="flex:1;font-size:0.85rem;font-weight:600;">${name}</div>
+        <div style="font-size:0.82rem;font-weight:700;color:var(--warning);">${pr.weight}kg × ${pr.reps}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderWorkoutHistory() {
+  const history = TXUtils.workouts.getHistory();
+  const container = document.getElementById('workoutHistoryList');
+  if (!container) return;
+  if (!history.length) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><h4>No workouts logged yet</h4><p>Start your first workout to see history here!</p></div>';
+    return;
+  }
+  container.innerHTML = history.slice(0, 20).map(w => `
+    <div class="card" style="margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;">
+        <div>
+          <h4>${w.name || 'Workout'}</h4>
+          <div style="font-size:0.78rem;color:var(--text-muted);margin-top:4px;">${TXUtils.date.format(w.date)} • ${w.plan || 'Custom'}</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <div class="badge badge-primary">${w.totalSets || 0} sets</div>
+          <div class="badge badge-success">${w.totalVolume || 0}kg volume</div>
+          <div class="badge badge-info">${TXUtils.fmt.duration(w.duration || 0)}</div>
+        </div>
+      </div>
+      <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;">
+        ${(w.exercises || []).map(ex => `<span style="font-size:0.75rem;color:var(--text-muted);">${ex.icon} ${ex.name}</span>`).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+// ===== NUTRITION SECTION =====
+function renderNutritionSection() {
+  const today = TXUtils.date.today();
+  const nutLog = TXUtils.nutrition.getLog(today);
+  const totals = TXUtils.nutrition.getTotals(nutLog);
+  const targetCals = aiPlan.targetCalories || 2000;
+  const macros = aiPlan.macros || { protein: 150, carbs: 200, fat: 55 };
+  const waterGlasses = TXUtils.water.getLog(today);
+
+  // Macro chart
+  setTimeout(() => {
+    TXUtils.charts.doughnut('nutMacroChart',
+      ['Protein','Carbs','Fat','Remaining'],
+      [totals.protein * 4, totals.carbs * 4, totals.fat * 9, Math.max(0, targetCals - totals.calories)],
+      ['#10b981','#6366f1','#f59e0b','rgba(255,255,255,0.04)']
+    );
+  }, 100);
+
+  document.getElementById('nutMacroDetails').innerHTML = `
+    <div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:4px;"><span style="color:var(--success);">💪 Protein</span><span><strong>${totals.protein}</strong>/${macros.protein}g</span></div>
+    <div class="progress-wrap" style="margin-bottom:10px;"><div class="progress-bar" style="width:${TXUtils.fmt.pct(totals.protein, macros.protein)}%;background:var(--success);"></div></div>
+    <div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:4px;"><span style="color:var(--primary-light);">🌾 Carbs</span><span><strong>${totals.carbs}</strong>/${macros.carbs}g</span></div>
+    <div class="progress-wrap" style="margin-bottom:10px;"><div class="progress-bar" style="width:${TXUtils.fmt.pct(totals.carbs, macros.carbs)}%;background:var(--primary);"></div></div>
+    <div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:4px;"><span style="color:var(--warning);">🥑 Fat</span><span><strong>${totals.fat}</strong>/${macros.fat}g</span></div>
+    <div class="progress-wrap" style="margin-bottom:10px;"><div class="progress-bar" style="width:${TXUtils.fmt.pct(totals.fat, macros.fat)}%;background:var(--warning);"></div></div>
+    <div style="font-size:0.85rem;font-weight:700;text-align:center;padding:8px;background:var(--bg-secondary);border-radius:var(--radius-xs);">🔥 ${totals.calories.toLocaleString()} / ${targetCals.toLocaleString()} kcal</div>
+  `;
+
+  // Meals
+  const mealTypes = ['Breakfast','Lunch','Dinner','Snack','Pre-Workout','Post-Workout'];
+  document.getElementById('todayMeals').innerHTML = mealTypes.map(type => {
+    const meal = (nutLog.meals || []).find(m => m.type === type);
+    const items = meal?.items || [];
+    const mealCals = items.reduce((a, i) => a + (i.logged_calories || 0), 0);
+    return `
+      <div style="margin-bottom:16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <h4 style="font-size:0.92rem;">${{Breakfast:'🌅',Lunch:'☀️',Dinner:'🌙',Snack:'🍎','Pre-Workout':'💪','Post-Workout':'🏋️'}[type]} ${type}</h4>
+          <div style="display:flex;gap:8px;align-items:center;">
+            ${mealCals > 0 ? `<span style="font-size:0.78rem;color:var(--text-muted);">${mealCals} kcal</span>` : ''}
+            <button class="btn btn-sm btn-ghost" onclick="openAddFood('${type}')">+ Add</button>
+          </div>
+        </div>
+        ${items.length ? items.map(item => `
+          <div class="food-item">
+            <div class="food-icon">${item.icon || '🍽️'}</div>
+            <div style="flex:1;">
+              <div style="font-size:0.85rem;font-weight:600;">${item.name}</div>
+              <div class="food-macro">${item.qty}${item.unit} • <span>${item.logged_calories}</span> kcal • P:<span>${item.logged_protein}g</span> C:<span>${item.logged_carbs}g</span> F:<span>${item.logged_fat}g</span></div>
+            </div>
+            <button onclick="removeFoodItem('${type}', ${item.item_id})" style="background:none;color:var(--text-muted);font-size:0.9rem;" title="Remove">✕</button>
+          </div>
+        `).join('') : `<div style="font-size:0.8rem;color:var(--text-muted);padding:8px 0;border-bottom:1px solid var(--border);">No foods logged yet</div>`}
+      </div>
+    `;
+  }).join('');
+
+  // Water display
+  const wEl = document.getElementById('nutWaterDisplay');
+  if (wEl) wEl.textContent = (waterGlasses * 0.25).toFixed(2) + 'L';
+
+  // Calorie balance
+  const balance = targetCals - totals.calories;
+  document.getElementById('calorieBalance').innerHTML = `
+    <div style="text-align:center;">
+      <div style="font-size:2rem;font-weight:800;color:${balance < 0 ? 'var(--error)' : 'var(--success)'};">${balance > 0 ? '+' : ''}${balance.toLocaleString()}</div>
+      <div style="font-size:0.75rem;color:var(--text-muted);">kcal ${balance >= 0 ? 'remaining' : 'over goal'}</div>
+      <div style="margin-top:8px;">
+        <div class="progress-wrap"><div class="progress-bar" style="width:${Math.min(100, (totals.calories/targetCals)*100)}%;${totals.calories > targetCals ? 'background:var(--error);' : ''}"></div></div>
+      </div>
+    </div>
+  `;
+
+  // Meal plans
+  renderMealPlansTab();
+  // Food database
+  searchFoodDatabase('');
+  // Supplements
+  renderSupplementsTab();
+}
+
+function renderMealPlansTab() {
+  const planContent = document.getElementById('mealPlanContent');
+  if (!planContent) return;
+  const plans = TX_DATA.mealPlans;
+  planContent.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px;margin-bottom:24px;">
+      ${plans.map(plan => `
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+            <h3 style="font-size:1rem;">${plan.name}</h3>
+            <span class="badge badge-${plan.type==='Non-Vegetarian'?'error':'success'}">${plan.type}</span>
+          </div>
+          <div class="macro-row" style="margin-bottom:16px;">
+            <div class="macro-pill"><div class="macro-pill-val">${plan.calories}</div><div class="macro-pill-label">Calories</div></div>
+            <div class="macro-pill" style="border-color:rgba(16,185,129,0.3);"><div class="macro-pill-val" style="color:var(--success);">${plan.protein}g</div><div class="macro-pill-label">Protein</div></div>
+            <div class="macro-pill" style="border-color:rgba(99,102,241,0.3);"><div class="macro-pill-val" style="color:var(--primary-light);">${plan.carbs}g</div><div class="macro-pill-label">Carbs</div></div>
+            <div class="macro-pill" style="border-color:rgba(245,158,11,0.3);"><div class="macro-pill-val" style="color:var(--warning);">${plan.fat}g</div><div class="macro-pill-label">Fat</div></div>
+          </div>
+          ${plan.meals.map(meal => `
+            <div style="padding:8px 0;border-bottom:1px solid var(--border);">
+              <div style="font-size:0.8rem;font-weight:700;color:var(--text-secondary);margin-bottom:4px;">${meal.name} • ${meal.calories} kcal</div>
+              <div style="font-size:0.78rem;color:var(--text-muted);">${meal.foods.map(f => TX_DATA.foods.find(fd => fd.id === f.id)?.name || '').filter(Boolean).join(', ')}</div>
+            </div>
+          `).join('')}
+          <button class="btn btn-secondary btn-full btn-sm" style="margin-top:12px;" onclick="applyMealPlan('${plan.id}')">Use This Plan</button>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function applyMealPlan(planId) {
+  TXUtils.toast.success('Meal plan applied to your AI plan!');
+  const plan = TX_DATA.mealPlans.find(p => p.id === planId);
+  if (plan) {
+    aiPlan.meal_plan = plan;
+    TXUtils.storage.set('ai_plan', aiPlan);
+    TXUtils.xp.add(20, 'Selected a meal plan');
+  }
+}
+
+function searchFoodDatabase(query) {
+  const q = (query || document.getElementById('foodDbSearch')?.value || '').toLowerCase();
+  const activeCat = document.querySelector('[id^="foodCat_"]');
+  const cat = '';
+  let foods = TX_DATA.foods.filter(f =>
+    (!q || f.name.toLowerCase().includes(q) || f.category.toLowerCase().includes(q))
+  );
+  const container = document.getElementById('foodDatabaseList');
+  if (!container) return;
+  container.innerHTML = foods.map(f => `
+    <div class="food-result-item" onclick="openAddFoodWithItem('${f.id}')">
+      <div style="display:flex;align-items:center;gap:12px;flex:1;">
+        <div class="food-icon">${f.icon}</div>
+        <div>
+          <div style="font-size:0.88rem;font-weight:600;">${f.name}</div>
+          <div style="font-size:0.72rem;color:var(--text-muted);">Per ${f.serving}${f.unit}</div>
+        </div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:0.85rem;font-weight:700;">${f.calories} kcal</div>
+        <div style="font-size:0.7rem;color:var(--text-muted);">P:${f.protein}g C:${f.carbs}g F:${f.fat}g</div>
+      </div>
+    </div>
+  `).join('') || '<div class="empty-state"><p>No foods found</p></div>';
+}
+
+function filterFoodDb(category) {
+  document.querySelectorAll('[id^="foodCat_"]').forEach(btn => { btn.classList.remove('btn-primary'); btn.classList.add('btn-ghost'); });
+  document.getElementById('foodCat_' + category)?.classList.add('btn-primary');
+  const q = document.getElementById('foodDbSearch')?.value || '';
+  let foods = TX_DATA.foods.filter(f =>
+    (category === 'All' || f.category === category) &&
+    (!q || f.name.toLowerCase().includes(q.toLowerCase()))
+  );
+  const container = document.getElementById('foodDatabaseList');
+  if (!container) return;
+  container.innerHTML = foods.map(f => `
+    <div class="food-result-item" onclick="openAddFoodWithItem('${f.id}')">
+      <div style="display:flex;align-items:center;gap:12px;flex:1;">
+        <div class="food-icon">${f.icon}</div>
+        <div>
+          <div style="font-size:0.88rem;font-weight:600;">${f.name}</div>
+          <div style="font-size:0.72rem;color:var(--text-muted);">Per ${f.serving}${f.unit}</div>
+        </div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:0.85rem;font-weight:700;">${f.calories} kcal</div>
+        <div style="font-size:0.7rem;color:var(--text-muted);">P:${f.protein}g C:${f.carbs}g F:${f.fat}g</div>
+      </div>
+    </div>
+  `).join('') || '<div class="empty-state"><p>No foods found</p></div>';
+}
+
+function renderSupplementsTab() {
+  const container = document.getElementById('nutrition-supplements');
+  if (!container) return;
+  const suppEl = container.querySelector('#suppContent');
+  // This is rendered in main supplements section
+}
+
+// ===== FOOD MODAL =====
+function openAddFood(mealType) {
+  selectedMealType = mealType;
+  selectedFood = null;
+  document.getElementById('addFoodTitle').textContent = `+ Log ${mealType}`;
+  document.getElementById('mealTypeSelect').value = mealType;
+  document.getElementById('foodModalSearch').value = '';
+  document.getElementById('foodModalResults').innerHTML = '';
+  document.getElementById('selectedFoodSection').style.display = 'none';
+  document.getElementById('confirmFoodBtn').disabled = true;
+  searchFoodModal('');
+  TXUtils.modal.open('addFoodModal');
+}
+
+function openAddFoodWithItem(foodId) {
+  openAddFood(document.getElementById('mealTypeSelect')?.value || 'Snack');
+  setTimeout(() => selectFoodFromModal(foodId), 100);
+}
+
+function searchFoodModal(query) {
+  const q = (query || '').toLowerCase();
+  const filtered = TX_DATA.foods.filter(f => !q || f.name.toLowerCase().includes(q) || f.category.toLowerCase().includes(q)).slice(0, 20);
+  document.getElementById('foodModalResults').innerHTML = filtered.map(f => `
+    <div class="food-result-item" onclick="selectFoodFromModal('${f.id}')">
+      <div style="display:flex;align-items:center;gap:10px;flex:1;">
+        <span style="font-size:1.2rem;">${f.icon}</span>
+        <div>
+          <div style="font-size:0.85rem;font-weight:600;">${f.name}</div>
+          <div style="font-size:0.72rem;color:var(--text-muted);">${f.category} • per ${f.serving}${f.unit}</div>
+        </div>
+      </div>
+      <div style="font-size:0.82rem;font-weight:700;">${f.calories} kcal</div>
+    </div>
+  `).join('') || '<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:0.85rem;">No foods found</div>';
+}
+
+function selectFoodFromModal(foodId) {
+  selectedFood = TX_DATA.foods.find(f => f.id === foodId);
+  if (!selectedFood) return;
+  document.getElementById('selectedFoodSection').style.display = 'block';
+  document.getElementById('confirmFoodBtn').disabled = false;
+  document.getElementById('servingLabel').textContent = `Quantity (${selectedFood.unit})`;
+  document.getElementById('foodQty').value = selectedFood.serving;
+  document.getElementById('selectedFoodInfo').innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;">
+      <span style="font-size:1.5rem;">${selectedFood.icon}</span>
+      <div>
+        <div style="font-weight:700;">${selectedFood.name}</div>
+        <div style="font-size:0.78rem;color:var(--text-muted);">Per ${selectedFood.serving}${selectedFood.unit}: ${selectedFood.calories}kcal • P:${selectedFood.protein}g • C:${selectedFood.carbs}g • F:${selectedFood.fat}g</div>
+      </div>
+    </div>
+  `;
+  updateFoodCalc();
+  document.getElementById('foodModalResults').innerHTML = '';
+  document.getElementById('foodModalSearch').value = selectedFood.name;
+}
+
+function updateFoodCalc() {
+  if (!selectedFood) return;
+  const qty = parseFloat(document.getElementById('foodQty')?.value) || selectedFood.serving;
+  const mult = qty / selectedFood.serving;
+  const cals = Math.round(selectedFood.calories * mult);
+  document.getElementById('calcResult').innerHTML = `<div style="font-size:1.4rem;font-weight:800;color:var(--primary);">${cals}</div><div style="font-size:0.72rem;color:var(--text-muted);">calories</div>`;
+}
+
+function confirmAddFood() {
+  if (!selectedFood) return;
+  const mealType = document.getElementById('mealTypeSelect').value;
+  const qty = parseFloat(document.getElementById('foodQty').value) || selectedFood.serving;
+  TXUtils.nutrition.addFood(TXUtils.date.today(), mealType, selectedFood, qty);
+  TXUtils.toast.success(`${selectedFood.icon} ${selectedFood.name} added to ${mealType}!`);
+  TXUtils.xp.add(10, 'Logged a meal');
+  TXUtils.modal.close('addFoodModal');
+  renderNutritionSection();
+}
+
+function removeFoodItem(mealType, itemId) {
+  const today = TXUtils.date.today();
+  const log = TXUtils.nutrition.getLog(today);
+  const meal = (log.meals || []).find(m => m.type === mealType);
+  if (meal) { meal.items = meal.items.filter(i => i.item_id !== itemId); }
+  TXUtils.nutrition.saveLog(today, log);
+  renderNutritionSection();
+  TXUtils.toast.info('Food removed from log');
+}
+
+// ===== PROGRESS SECTION =====
+function renderProgressSection() {
+  const measurements = TXUtils.measurements.getAll();
+  const latest = TXUtils.measurements.getLatest();
+
+  // Measurements list
+  const measList = document.getElementById('measurementsList');
+  if (measList) {
+    measList.innerHTML = TX_DATA.bodyParts.map(bp => {
+      const val = latest ? latest[bp.key] : null;
+      const all = measurements.map(m => m[bp.key]).filter(v => v);
+      const prev = all.length >= 2 ? all[all.length - 2] : null;
+      const change = val && prev ? (val - prev).toFixed(1) : null;
+      return `
+        <div class="measurement-row">
+          <span style="font-size:1.1rem;">${bp.icon}</span>
+          <div style="flex:1;">
+            <div style="font-size:0.85rem;font-weight:600;">${bp.label}</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-weight:700;">${val || '—'} ${val ? bp.unit : ''}</div>
+            ${change ? `<div style="font-size:0.72rem;color:${parseFloat(change) < 0 ? 'var(--success)' : 'var(--error)'};">${change > 0 ? '+' : ''}${change}${bp.unit}</div>` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // Milestones
+  const startWeight = profile.weight;
+  const currentWeight = latest?.weight || startWeight;
+  const targetWeight = profile.targetWeight;
+  const totalToLose = startWeight && targetWeight ? Math.abs(startWeight - targetWeight) : 0;
+  const lost = startWeight && currentWeight ? Math.abs(startWeight - currentWeight) : 0;
+  const pct = totalToLose > 0 ? Math.min(100, Math.round((lost / totalToLose) * 100)) : 0;
+
+  const milestonesEl = document.getElementById('progressMilestones');
+  if (milestonesEl) {
+    milestonesEl.innerHTML = `
+      <div style="margin-bottom:16px;">
+        <div style="font-size:0.82rem;color:var(--text-muted);margin-bottom:6px;">Goal Progress</div>
+        <div style="font-size:1.4rem;font-weight:800;">${pct}%</div>
+        <div class="progress-wrap" style="margin-top:6px;height:8px;"><div class="progress-bar" style="width:${pct}%;"></div></div>
+        <div style="font-size:0.75rem;color:var(--text-muted);margin-top:4px;">${startWeight || '?'}kg → ${targetWeight || '?'}kg</div>
+      </div>
+      <div style="font-size:0.82rem;color:var(--text-muted);margin-bottom:8px;">Milestones</div>
+      ${[25,50,75,100].map(m => `
+        <div style="display:flex;align-items:center;gap:10px;padding:6px 0;">
+          <span style="font-size:1rem;">${pct >= m ? '✅' : '⭕'}</span>
+          <div style="flex:1;font-size:0.82rem;${pct >= m ? 'color:var(--success)' : 'color:var(--text-muted)'};">${m}% to goal</div>
+          ${pct >= m ? '<span class="badge badge-success">Done!</span>' : ''}
+        </div>
+      `).join('')}
+    `;
+  }
+
+  // Charts
+  setTimeout(() => {
+    if (measurements.length >= 2) {
+      const labels = measurements.slice(-12).map(m => TXUtils.date.formatShort(m.date));
+      const weights = measurements.slice(-12).map(m => m.weight);
+      TXUtils.charts.line('progressWeightChart', labels, [{ data: weights, color: '#6366f1', bgColor: 'rgba(99,102,241,0.1)', label: 'Weight', fill: true }]);
+      TXUtils.charts.line('multiMeasurementChart', labels,
+        ['waist','chest','arms'].map((key, i) => ({
+          label: key.charAt(0).toUpperCase() + key.slice(1),
+          data: measurements.slice(-12).map(m => m[key] || null),
+          color: ['#ef4444','#10b981','#6366f1'][i],
+          bgColor: 'transparent',
+          fill: false
+        }))
+      );
+    } else {
+      // Show sample chart
+      const labels = Array.from({length:8},(_,i)=>`Week ${i+1}`);
+      TXUtils.charts.line('progressWeightChart', labels, [{data: Array.from({length:8},(_,i)=>+(profile.weight||75)-(i*0.5)).map(v=>+v.toFixed(1)), color:'#6366f1', bgColor:'rgba(99,102,241,0.1)', label:'Weight', fill:true}]);
+    }
+
+    // Body comp chart
+    const bmi = profile.weight && profile.height ? parseFloat(TXUtils.fitness.bmi(profile.weight, profile.height)) : 0;
+    const fat = parseFloat(profile.bodyFat?.split('-')[0]) || 20;
+    TXUtils.charts.doughnut('bodyCompChart', ['Body Fat %', 'Lean Mass %'], [fat, 100-fat], ['#f59e0b','#10b981']);
+  }, 100);
+
+  // Body comp data
+  const bodyCompEl = document.getElementById('bodyCompData');
+  if (bodyCompEl && profile.weight && profile.height) {
+    const bmi = TXUtils.fitness.bmi(profile.weight, profile.height);
+    const cat = TXUtils.fitness.bmiCategory(bmi);
+    const bmr = TXUtils.fitness.bmr(profile.weight, profile.height, profile.age || 25, profile.gender || 'Male');
+    const tdee = TXUtils.fitness.tdee(bmr, profile.activityLevel || 'Moderately Active (3-5 days/week)');
+    bodyCompEl.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+        <div style="background:var(--bg-secondary);border-radius:var(--radius-sm);padding:12px;text-align:center;">
+          <div style="font-size:1.5rem;font-weight:800;color:${cat.color};">${bmi}</div>
+          <div style="font-size:0.72rem;color:var(--text-muted);">BMI</div>
+          <div style="font-size:0.78rem;font-weight:600;color:${cat.color};">${cat.label}</div>
+        </div>
+        <div style="background:var(--bg-secondary);border-radius:var(--radius-sm);padding:12px;text-align:center;">
+          <div style="font-size:1.5rem;font-weight:800;">${bmr.toLocaleString()}</div>
+          <div style="font-size:0.72rem;color:var(--text-muted);">BMR (kcal)</div>
+        </div>
+        <div style="background:var(--bg-secondary);border-radius:var(--radius-sm);padding:12px;text-align:center;">
+          <div style="font-size:1.5rem;font-weight:800;">${tdee.toLocaleString()}</div>
+          <div style="font-size:0.72rem;color:var(--text-muted);">TDEE (kcal)</div>
+        </div>
+        <div style="background:var(--bg-secondary);border-radius:var(--radius-sm);padding:12px;text-align:center;">
+          <div style="font-size:1.5rem;font-weight:800;">${aiPlan.targetCalories?.toLocaleString() || '—'}</div>
+          <div style="font-size:0.72rem;color:var(--text-muted);">Target (kcal)</div>
+        </div>
+      </div>
+    `;
+  }
+
+  // Body calculators
+  const calcEl = document.getElementById('bodyCalculators');
+  if (calcEl) {
+    calcEl.innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div class="input-group">
+          <label class="input-label">Weight (kg)</label>
+          <input type="number" class="input" id="calcWeight" value="${profile.weight || ''}" oninput="recalculate()">
+        </div>
+        <div class="input-group">
+          <label class="input-label">Height (cm)</label>
+          <input type="number" class="input" id="calcHeight" value="${profile.height || ''}" oninput="recalculate()">
+        </div>
+        <div class="input-group">
+          <label class="input-label">Age</label>
+          <input type="number" class="input" id="calcAge" value="${profile.age || ''}" oninput="recalculate()">
+        </div>
+        <div id="calcResults" style="background:var(--bg-secondary);border-radius:var(--radius-sm);padding:14px;font-size:0.85rem;line-height:2;"></div>
+      </div>
+    `;
+    recalculate();
+  }
+
+  // Photos timeline
+  renderPhotosTimeline();
+}
+
+function recalculate() {
+  const w = parseFloat(document.getElementById('calcWeight')?.value);
+  const h = parseFloat(document.getElementById('calcHeight')?.value);
+  const age = parseFloat(document.getElementById('calcAge')?.value) || 25;
+  const g = profile.gender || 'Male';
+  if (!w || !h) return;
+  const bmi = TXUtils.fitness.bmi(w, h);
+  const bmr = TXUtils.fitness.bmr(w, h, age, g);
+  const tdee = TXUtils.fitness.tdee(bmr, profile.activityLevel || 'Moderately Active (3-5 days/week)');
+  const cat = TXUtils.fitness.bmiCategory(bmi);
+  document.getElementById('calcResults').innerHTML = `
+    <div>BMI: <strong style="color:${cat.color};">${bmi} — ${cat.label}</strong></div>
+    <div>BMR: <strong>${bmr.toLocaleString()} kcal/day</strong></div>
+    <div>TDEE: <strong>${tdee.toLocaleString()} kcal/day</strong></div>
+    <div>Fat Loss: <strong>${(tdee-500).toLocaleString()} kcal/day</strong></div>
+    <div>Muscle Gain: <strong>${(tdee+300).toLocaleString()} kcal/day</strong></div>
+    <div>Min Protein: <strong>${Math.round(w * 1.8)}g/day</strong></div>
+  `;
+}
+
+function renderPhotosTimeline() {
+  const photos = TXUtils.photos.getAll();
+  const container = document.getElementById('photosTimeline');
+  if (!container) return;
+  if (!photos.length) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon">📸</div><h4>No progress photos yet</h4><p>Document your transformation with photos!</p><button class="btn btn-primary btn-sm" style="margin-top:12px;" onclick="TXUtils.modal.open('addPhotoModal')">+ Add Photos</button></div>`;
+    return;
+  }
+  const grouped = {};
+  photos.forEach(p => { if (!grouped[p.date]) grouped[p.date] = []; grouped[p.date].push(p); });
+  container.innerHTML = Object.entries(grouped).sort(([a],[b]) => b.localeCompare(a)).map(([date, datePhotos]) => `
+    <div style="margin-bottom:24px;">
+      <div style="font-weight:700;margin-bottom:12px;">${TXUtils.date.format(date)}</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;">
+        ${datePhotos.map(p => `
+          <div style="border-radius:var(--radius-sm);overflow:hidden;aspect-ratio:3/4;background:var(--bg-secondary);position:relative;">
+            ${p.data ? `<img src="${p.data}" style="width:100%;height:100%;object-fit:cover;">` : '<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:2rem;">📷</div>'}
+            <div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(to top,rgba(0,0,0,0.7),transparent);padding:8px;font-size:0.75rem;color:white;font-weight:600;">${p.angle}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+function saveMeasurements() {
+  const data = {};
+  TX_DATA.bodyParts.forEach(bp => {
+    const val = document.getElementById('meas_' + bp.key)?.value;
+    if (val) data[bp.key] = parseFloat(val);
+  });
+  if (Object.keys(data).length === 0) { TXUtils.toast.warning('Enter at least one measurement'); return; }
+  TXUtils.measurements.log(data);
+  TXUtils.modal.close('logMeasurementModal');
+  TXUtils.toast.success('📏 Measurements saved!');
+  TXUtils.xp.add(30, 'Logged measurements');
+  renderProgressSection();
+}
+
+function previewModalPhoto(input, angle) {
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      photoData[angle] = e.target.result;
+      const slot = document.getElementById('modalPhoto_' + angle);
+      if (slot) { slot.innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius-sm);"><div class="photo-slot-label">${angle}</div>`; }
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+function saveProgressPhotos() {
+  if (Object.keys(photoData).length === 0) { TXUtils.toast.warning('Please select at least one photo'); return; }
+  Object.entries(photoData).forEach(([angle, data]) => { TXUtils.photos.save({ angle, data }); });
+  photoData = {};
+  TXUtils.modal.close('addPhotoModal');
+  TXUtils.toast.success('📸 Progress photos saved!');
+  renderProgressSection();
+}
+
+// ===== CALENDAR =====
+function renderCalendar() {
+  const today = new Date();
+  const year = currentCalYear;
+  const month = currentCalMonth;
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('calMonthLabel').textContent = `${monthNames[month]} ${year}`;
+
+  const calHeader = document.getElementById('calHeader');
+  calHeader.innerHTML = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => `<div class="cal-header-day">${d}</div>`).join('');
+
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+  const workoutHistory = TXUtils.workouts.getHistory();
+  const nutLogs = TXUtils.storage.get('nutrition_logs') || {};
+  const measurements = TXUtils.measurements.getAll();
+
+  const calGrid = document.getElementById('calGrid');
+  let html = '';
+
+  // Prev month days
+  for (let i = firstDay - 1; i >= 0; i--) {
+    html += `<div class="cal-day other-month">${daysInPrevMonth - i}</div>`;
+  }
+
+  // Current month days
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const isToday = dateStr === TXUtils.date.today();
+    const hasWorkout = workoutHistory.some(w => w.date === dateStr);
+    const hasMeal = !!nutLogs[dateStr];
+    const hasMeas = measurements.some(m => m.date === dateStr);
+
+    html += `<div class="cal-day ${isToday ? 'today' : ''}" onclick="selectCalDay('${dateStr}', ${day})">
+      ${day}
+      ${hasWorkout ? '<div class="cal-event">💪 Workout</div>' : ''}
+      ${hasMeal ? '<div class="cal-event meal">🥗 Meals</div>' : ''}
+      ${hasMeas ? '<div class="cal-event measurement">📏 Measure</div>' : ''}
+    </div>`;
+  }
+
+  // Fill remaining
+  const total = firstDay + daysInMonth;
+  const remaining = total % 7 ? 7 - (total % 7) : 0;
+  for (let i = 1; i <= remaining; i++) { html += `<div class="cal-day other-month">${i}</div>`; }
+
+  calGrid.innerHTML = html;
+}
+
+function selectCalDay(dateStr, day) {
+  const workoutHistory = TXUtils.workouts.getHistory();
+  const nutLogs = TXUtils.storage.get('nutrition_logs') || {};
+  const measurements = TXUtils.measurements.getAll();
+
+  const workout = workoutHistory.find(w => w.date === dateStr);
+  const nutLog = nutLogs[dateStr];
+  const meas = measurements.find(m => m.date === dateStr);
+
+  document.getElementById('calSelectedDay').innerHTML = `
+    <div style="font-weight:700;margin-bottom:12px;">${TXUtils.date.format(dateStr)}</div>
+    ${workout ? `
+      <div style="margin-bottom:10px;"><div class="badge badge-primary" style="margin-bottom:6px;">💪 Workout</div><div style="font-size:0.82rem;">${workout.name} • ${workout.totalSets} sets • ${workout.totalVolume}kg</div></div>
+    ` : '<div style="font-size:0.78rem;color:var(--text-muted);">No workout</div>'}
+    ${nutLog ? `
+      <div style="margin-top:10px;"><div class="badge badge-success" style="margin-bottom:6px;">🥗 Nutrition</div><div style="font-size:0.82rem;">${Object.values(nutLog.meals || {}).reduce((a,m) => a + (m?.items?.length||0), 0)} foods logged</div></div>
+    ` : ''}
+    ${meas ? `
+      <div style="margin-top:10px;"><div class="badge badge-warning" style="margin-bottom:6px;">📏 Measurements</div><div style="font-size:0.82rem;">${meas.weight ? `Weight: ${meas.weight}kg` : ''} ${meas.waist ? `Waist: ${meas.waist}cm` : ''}</div></div>
+    ` : ''}
+  `;
+}
+
+function prevMonth() { currentCalMonth--; if (currentCalMonth < 0) { currentCalMonth = 11; currentCalYear--; } renderCalendar(); }
+function nextMonth() { currentCalMonth++; if (currentCalMonth > 11) { currentCalMonth = 0; currentCalYear++; } renderCalendar(); }
+
+// ===== AI CHAT =====
+const AI_RESPONSES = {
+  'muscle gain': `Great question! For muscle gain, here's your personalized plan based on your profile:\n\n**Calories:** Eat ${aiPlan?.targetCalories ? aiPlan.targetCalories + 300 : '~2500-2800'} kcal/day (slight surplus)\n\n**Protein:** ${profile.weight ? Math.round(profile.weight * 2) : '150-180'}g/day minimum (${profile.weight}kg × 2g/kg)\n\n**Best foods for you:**\n• Chicken breast (31g protein per 100g)\n• Paneer (18g per 100g) — great for vegetarians\n• Eggs (whole + whites)\n• Dal + rice combo (complete amino acids)\n• Greek yogurt\n\n**Training:** Progressive overload is key. Increase weight by 2.5kg every 1-2 weeks when you can complete all reps with perfect form.\n\nWant me to create a specific meal plan for today?`,
+  'fat loss': `Here's your science-based fat loss strategy:\n\n**Calorie deficit:** ${profile.weight ? Math.round(TXUtils.fitness.tdee(TXUtils.fitness.bmr(profile.weight, profile.height||170, profile.age||25, profile.gender||'Male'), 'Moderately Active (3-5 days/week)') - 500) : '~1800-2000'} kcal/day (500 kcal deficit)\n\n**Key principles:**\n1. High protein (${profile.weight ? Math.round(profile.weight * 2.2) : '160+'}g/day) — preserves muscle while losing fat\n2. Strength training 3-4x/week — maintains metabolic rate\n3. 8,000-10,000 steps daily — non-exercise activity matters\n4. Sleep 7-9 hours — poor sleep increases hunger hormones\n\n**Indian diet tips:**\n• Dal is your friend (high protein, high fiber, filling)\n• Paneer > cheese (better macro profile)\n• Roti > paratha (less fat, same satisfaction)\n• Curd/dahi daily for gut health and protein\n\nYour sustainable rate: 0.5-1kg fat loss per week. Anything faster and you'll lose muscle too.`,
+  'protein': `Based on your profile (${profile.weight || '70'}kg), here's your protein needs:\n\n**Minimum:** ${profile.weight ? Math.round(profile.weight * 1.6) : '112'}g/day (sedentary maintenance)\n**Optimal for your goals:** ${profile.weight ? Math.round(profile.weight * 2.2) : '154'}g/day\n**Maximum useful:** ${profile.weight ? Math.round(profile.weight * 2.4) : '168'}g/day\n\n**Top Indian protein sources:**\n• Paneer — 18g per 100g\n• Dal (any type) — 7-9g per 100g cooked\n• Soya chunks — 52g per 100g dry (!)\n• Eggs — 13g per 100g\n• Curd/dahi — 3.5g per 100g\n• Rajma/chole — 8-9g per 100g\n\n**Whey protein:** If budget allows, 1 scoop adds 24g easily. Optimum Nutrition and MuscleBlaze are reliable in India.\n\nSpread protein across 4-5 meals for maximum muscle protein synthesis!`,
+  'supplements': `Based on your goals and budget, here's what's worth your money:\n\n**Tier 1 (Strong Evidence — Must Have):**\n🥇 **Creatine Monohydrate** — ₹500-800/month. Increases strength by 5-15%, muscle volume by 2-3%. Take 5g daily, any time. Best supplement in existence.\n🥇 **Whey Protein** — Only if you can't hit protein goals from food. Otherwise, spend that money on chicken and paneer.\n🥇 **Vitamin D3** — Most Indians are deficient. 2000-4000 IU daily. Boosts testosterone, immunity, mood.\n\n**Tier 2 (Good Evidence):**\n🥈 **Omega-3** — Anti-inflammatory. 2-3g EPA+DHA daily. HealthKart is good value in India.\n🥈 **Magnesium Glycinate** — Before bed. Improves sleep quality and muscle recovery.\n\n**Skip:** BCAAs (useless if eating enough protein), fat burners (dangerous and ineffective), testosterone boosters (scam).\n\nStart with creatine only if on a tight budget. It's the single best supplement investment.`,
+  'sleep': `Sleep is where muscles grow and fat is burned — it's not optional! Here's the science:\n\n**How much:** 7-9 hours is the sweet spot. Below 6 hours:\n• Testosterone drops 10-15%\n• Cortisol (fat-storing hormone) rises 37%\n• Hunger hormones (ghrelin) increase — you eat 300+ extra calories\n• Muscle protein synthesis decreases\n\n**Your sleep optimization plan:**\n• Same bedtime and wake time every day (even weekends)\n• Room temperature: 18-20°C (optimal for deep sleep)\n• Complete darkness\n• No screens 30-60 min before bed\n• No caffeine after 2 PM\n• Magnesium glycinate 300mg before bed\n\n**Indian-specific tip:** Warm turmeric milk before bed is actually evidence-backed — curcumin has mild sedative effects and reduces inflammation.\n\nTracking sleep? Use the Journal section to log sleep hours and correlate with workout performance.`,
+  'workout plan': `Based on your profile, here's your optimal workout structure:\n\n**Your stats:** ${profile.fitnessLevel || 'Intermediate'} • ${profile.workoutDays || 4} days/week • Equipment: ${(profile.equipment || ['Gym']).join(', ')}\n\n**Recommended split:** ${aiPlan?.workout_plan?.name || 'Push Pull Legs'}\n\n${aiPlan?.workout_plan?.schedule?.map(day => `**${day.day}:** ${day.name}`).join('\n') || ''}\n\n**Key principles for your program:**\n• Progressive overload: Increase weight by 2.5kg when you complete all prescribed reps\n• Warm up: 5-10 min of the World's Greatest Stretch + joint mobility\n• Rest periods: 60-90s for isolation, 2-3 min for compound lifts\n• Prioritize the big 5: Squat, Deadlift, Bench, Row, Overhead Press\n\nCheck the Workout section for your full detailed plan with exercise instructions!`,
+  'progress': () => {
+    const measurements = TXUtils.measurements.getAll();
+    const workouts = TXUtils.workouts.getHistory();
+    const streak = TXUtils.streak.get();
+    const xp = TXUtils.xp.get();
+    return `📊 **Your Progress Analysis:**\n\n**Streak:** ${streak} days 🔥\n**Workouts logged:** ${workouts.length}\n**XP earned:** ${xp.toLocaleString()}\n**Measurements recorded:** ${measurements.length}\n\n${measurements.length >= 2 ? `**Weight change:** ${(measurements[measurements.length-1].weight - measurements[0].weight).toFixed(1)}kg since you started` : 'Log measurements to track body changes!'}\n\n${workouts.length >= 5 ? '🎯 Great consistency! You\'re building the habit that matters.' : 'Keep logging your workouts — consistency is everything!'}\n\n**My recommendation:** ${streak >= 7 ? 'Your streak shows real commitment! Focus on progressive overload this week.' : 'Work on hitting your daily habits to build momentum. Small wins compound.'}`;
+  }
+};
+
+let apiKey = TXUtils.storage.get('openai_api_key') || '';
+
+function renderChat() {
+  if (apiKey) { hideChatBanner(); }
+  const savedHistory = TXUtils.storage.get('chat_history') || [];
+  chatHistory = savedHistory;
+  const container = document.getElementById('chatMessages');
+  if (!container) return;
+
+  if (!chatHistory.length) {
+    chatHistory.push({
+      role: 'assistant',
+      content: `Hey ${profile.firstName || 'there'}! 👋 I'm your AI fitness coach.\n\nI have your complete profile — ${profile.weight}kg, goal: ${(profile.goals||['General Health'])[0]}, ${profile.fitnessLevel || 'Intermediate'} level, ${profile.dietType || 'Non-Veg'} diet.\n\nAsk me anything about your workouts, nutrition, recovery, or lifestyle. I'll give you personalized, evidence-based advice.\n\nWhat's on your mind today?`,
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  renderChatMessages();
+}
+
+function renderChatMessages() {
+  const container = document.getElementById('chatMessages');
+  if (!container) return;
+  container.innerHTML = chatHistory.map(msg => `
+    <div class="chat-message ${msg.role === 'user' ? 'user' : ''}">
+      ${msg.role !== 'user' ? `<div class="avatar" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);">AI</div>` : ''}
+      <div class="chat-bubble ${msg.role === 'user' ? 'user' : ''}">
+        <div style="white-space:pre-wrap;font-size:0.88rem;line-height:1.7;">${formatChatMessage(msg.content)}</div>
+        <div style="font-size:0.68rem;${msg.role==='user'?'color:rgba(255,255,255,0.6)':'color:var(--text-muted)'};margin-top:6px;">${new Date(msg.timestamp).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</div>
+      </div>
+      ${msg.role === 'user' ? `<div class="avatar">${(profile.firstName||'U')[0]}</div>` : ''}
+    </div>
+  `).join('');
+  container.scrollTop = container.scrollHeight;
+}
+
+function formatChatMessage(text) {
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/^•\s/gm, '• ')
+    .replace(/^🥇/gm, '🥇')
+    .replace(/^🥈/gm, '🥈')
+    .replace(/^🎯/gm, '🎯');
+}
+
+async function sendChatMessage() {
+  const input = document.getElementById('chatInput');
+  const msg = input?.value?.trim();
+  if (!msg) return;
+
+  input.value = '';
+  chatHistory.push({ role: 'user', content: msg, timestamp: new Date().toISOString() });
+  renderChatMessages();
+
+  // Show typing indicator
+  const container = document.getElementById('chatMessages');
+  const typingEl = document.createElement('div');
+  typingEl.className = 'chat-message';
+  typingEl.innerHTML = `<div class="avatar" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);">AI</div><div class="chat-bubble chat-typing"><div class="chat-typing-dot"></div><div class="chat-typing-dot"></div><div class="chat-typing-dot"></div></div>`;
+  container.appendChild(typingEl);
+  container.scrollTop = container.scrollHeight;
+
+  let response;
+
+  if (apiKey) {
+    // Real OpenAI call
+    try {
+      const systemPrompt = buildSystemPrompt();
+      const messages = [
+        { role: 'system', content: systemPrompt },
+        ...chatHistory.slice(-20).map(m => ({ role: m.role, content: m.content }))
+      ];
+      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+        body: JSON.stringify({ model: 'gpt-4o-mini', messages, max_tokens: 1000 })
+      });
+      if (!res.ok) throw new Error('API error: ' + res.status);
+      const data = await res.json();
+      response = data.choices[0].message.content;
+    } catch (err) {
+      response = `I encountered an error connecting to OpenAI: ${err.message}\n\nPlease check your API key in Settings. In the meantime, I'll use my built-in knowledge.`;
+    }
+  } else {
+    // Smart demo responses
+    await new Promise(r => setTimeout(r, 1200 + Math.random() * 800));
+    const lowerMsg = msg.toLowerCase();
+    if (lowerMsg.includes('muscle') || lowerMsg.includes('gain') || lowerMsg.includes('bulk')) response = AI_RESPONSES['muscle gain'];
+    else if (lowerMsg.includes('fat') || lowerMsg.includes('weight') || lowerMsg.includes('lose') || lowerMsg.includes('cut')) response = AI_RESPONSES['fat loss'];
+    else if (lowerMsg.includes('protein')) response = AI_RESPONSES['protein'];
+    else if (lowerMsg.includes('supplement') || lowerMsg.includes('creatine') || lowerMsg.includes('whey')) response = AI_RESPONSES['supplements'];
+    else if (lowerMsg.includes('sleep') || lowerMsg.includes('rest') || lowerMsg.includes('recovery')) response = AI_RESPONSES['sleep'];
+    else if (lowerMsg.includes('workout') || lowerMsg.includes('exercise') || lowerMsg.includes('plan') || lowerMsg.includes('program')) response = AI_RESPONSES['workout plan'];
+    else if (lowerMsg.includes('progress') || lowerMsg.includes('result') || lowerMsg.includes('analyze')) response = typeof AI_RESPONSES['progress'] === 'function' ? AI_RESPONSES['progress']() : AI_RESPONSES['progress'];
+    else response = `Great question! Based on your profile (${profile.firstName}, ${profile.weight}kg, goal: ${(profile.goals||['General Health'])[0]}):\n\nI'm currently running in demo mode. For personalized AI coaching with full context awareness, add your OpenAI API key in the settings above.\n\nHere's what I can tell you:\n\n**Your daily targets:**\n• Calories: ${aiPlan.targetCalories || 2000} kcal\n• Protein: ${aiPlan.macros?.protein || 150}g\n• Carbs: ${aiPlan.macros?.carbs || 200}g\n• Fat: ${aiPlan.macros?.fat || 55}g\n\nAsk me about: muscle gain, fat loss, protein, supplements, sleep, or your workout plan!`;
+  }
+
+  typingEl.remove();
+  chatHistory.push({ role: 'assistant', content: response, timestamp: new Date().toISOString() });
+  TXUtils.storage.set('chat_history', chatHistory);
+  renderChatMessages();
+  TXUtils.xp.add(5, 'Used AI coach');
+}
+
+function buildSystemPrompt() {
+  return `You are an expert AI fitness coach for TransformX AI. You have the following user profile:
+
+Name: ${profile.firstName} ${profile.lastName}
+Age: ${profile.age}, Gender: ${profile.gender}
+Weight: ${profile.weight}kg, Height: ${profile.height}cm, Target: ${profile.targetWeight}kg
+BMI: ${profile.weight && profile.height ? TXUtils.fitness.bmi(profile.weight, profile.height) : 'unknown'}
+Fitness Level: ${profile.fitnessLevel}
+Goals: ${(profile.goals||[]).join(', ')}
+Diet: ${profile.dietType}
+Equipment: ${(profile.equipment||[]).join(', ')}
+Activity Level: ${profile.activityLevel}
+Medical conditions: ${(profile.conditions||[]).join(', ')}
+Injuries: ${profile.injuries || 'None'}
+Location: ${profile.city || 'India'}
+Budget: Food: ${profile.foodBudget}, Supplements: ${profile.suppBudget}
+
+Calculated:
+- TDEE: ${aiPlan.tdee || 'unknown'} kcal
+- Target calories: ${aiPlan.targetCalories || 'unknown'} kcal
+- Daily macros: Protein ${aiPlan.macros?.protein}g, Carbs ${aiPlan.macros?.carbs}g, Fat ${aiPlan.macros?.fat}g
+
+Workout stats:
+- Total workouts: ${TXUtils.workouts.getHistory().length}
+- Current streak: ${TXUtils.streak.get()} days
+- XP: ${TXUtils.xp.get()}
+
+Be specific, personalized, evidence-based, practical. Reference Indian foods when appropriate. No bro-science. Keep responses focused and actionable. Format with bold headers and bullet points.`;
+}
+
+function askQuestion(q) {
+  if (!document.getElementById('section-chat').classList.contains('active')) navigate('chat');
+  document.getElementById('chatInput').value = q;
+  sendChatMessage();
+}
+
+function chatKeydown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChatMessage(); }
+}
+
+function autoResizeChat(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+function clearChat() {
+  if (!confirm('Clear all chat history?')) return;
+  chatHistory = [];
+  TXUtils.storage.remove('chat_history');
+  renderChat();
+}
+
+function exportChat() {
+  const text = chatHistory.map(m => `[${m.role.toUpperCase()}] ${m.content}`).join('\n\n---\n\n');
+  const blob = new Blob([text], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'transformx-chat.txt'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function showApiKeyInput() {
+  document.getElementById('chatApiBanner').style.display = 'none';
+  document.getElementById('apiKeyPanel').style.display = 'block';
+}
+
+function hideApiKeyPanel() {
+  document.getElementById('apiKeyPanel').style.display = 'none';
+  document.getElementById('chatApiBanner').style.display = 'block';
+}
+
+function hideChatBanner() {
+  document.getElementById('chatApiBanner').style.display = 'none';
+  document.getElementById('apiKeyPanel').style.display = 'none';
+}
+
+function saveApiKey() {
+  const key = document.getElementById('apiKeyInput').value.trim();
+  if (!key.startsWith('sk-')) { TXUtils.toast.error('Invalid API key format. Should start with sk-'); return; }
+  apiKey = key;
+  TXUtils.storage.set('openai_api_key', key);
+  TXUtils.toast.success('🔑 API key saved! AI coach is now fully active.');
+  hideChatBanner();
+}
+
+// ===== MY PLAN =====
+function renderPlan() {
+  const plan = aiPlan;
+  const workoutPlan = plan.workout_plan;
+  const mealPlan = plan.meal_plan;
+  const container = document.getElementById('myPlanContent');
+  if (!container) return;
+
+  container.innerHTML = `
+    <!-- Overview -->
+    <div class="dashboard-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px;">
+      <div class="stat-card primary"><div class="stat-icon" style="background:rgba(99,102,241,0.15);">🔥</div><div class="stat-value">${plan.targetCalories?.toLocaleString() || '—'}</div><div class="stat-label">Daily Calories</div></div>
+      <div class="stat-card success"><div class="stat-icon" style="background:rgba(16,185,129,0.15);">💪</div><div class="stat-value">${plan.macros?.protein || '—'}g</div><div class="stat-label">Daily Protein</div></div>
+      <div class="stat-card warning"><div class="stat-icon" style="background:rgba(245,158,11,0.15);">🏋️</div><div class="stat-value">${workoutPlan?.days || '—'}x</div><div class="stat-label">Days/Week</div></div>
+    </div>
+
+    <!-- Workout Plan -->
+    <div class="card" style="margin-bottom:20px;">
+      <h3 style="margin-bottom:16px;">💪 ${workoutPlan?.name || 'Workout Plan'}</h3>
+      <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:16px;">Goal: ${(profile.goals||['General Health']).join(', ')} • Level: ${profile.fitnessLevel}</p>
+      ${workoutPlan?.schedule?.map(day => `
+        <div class="plan-day-card ${day.day === ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][new Date().getDay()] ? 'active-day' : ''}">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:${day.exercises.length ? '10px' : '0'};">
+            <h4 style="font-size:0.9rem;">${day.day} — <span style="color:var(--primary-light);">${day.name}</span></h4>
+            ${day.day === ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][new Date().getDay()] ? '<span class="badge badge-primary">TODAY</span>' : ''}
+          </div>
+          ${day.exercises.length ? `<div style="display:flex;flex-wrap:wrap;gap:6px;">
+            ${day.exercises.map(eid => { const ex = TX_DATA.exercises.find(e=>e.id===eid); return ex ? `<span style="font-size:0.75rem;background:var(--bg-secondary);padding:3px 10px;border-radius:999px;color:var(--text-muted);">${ex.icon} ${ex.name}</span>` : ''; }).join('')}
+          </div>` : ''}
+        </div>
+      `).join('') || '<p style="color:var(--text-muted);">No plan generated yet</p>'}
+    </div>
+
+    <!-- Meal Plan -->
+    <div class="card" style="margin-bottom:20px;">
+      <h3 style="margin-bottom:16px;">🥗 ${mealPlan?.name || 'Meal Plan'}</h3>
+      ${mealPlan?.meals?.map(meal => `
+        <div style="margin-bottom:14px;padding:14px;background:var(--bg-secondary);border-radius:var(--radius-sm);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <h4 style="font-size:0.88rem;">${meal.name}</h4>
+            <span class="badge badge-primary">${meal.calories} kcal</span>
+          </div>
+          ${meal.foods.map(f => {
+            const food = TX_DATA.foods.find(fd => fd.id === f.id);
+            return food ? `<div style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:3px;">${food.icon} ${food.name} — ${f.qty}${food.unit} • ${Math.round(food.protein * f.qty / food.serving)}g protein</div>` : '';
+          }).join('')}
+        </div>
+      `).join('') || '<p style="color:var(--text-muted);">No meal plan generated yet</p>'}
+    </div>
+
+    <!-- Supplements -->
+    <div class="card">
+      <h3 style="margin-bottom:16px;">💊 Recommended Supplements</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;">
+        ${(plan.recommended_supplements || TX_DATA.supplements.slice(0,5)).map(s => `
+          <div style="background:var(--bg-secondary);border-radius:var(--radius-sm);padding:14px;">
+            <div style="font-weight:700;margin-bottom:6px;">${s.emoji} ${s.name}</div>
+            <div style="font-size:0.78rem;color:var(--text-muted);">Dose: ${s.dose}</div>
+            <div style="font-size:0.78rem;color:var(--text-muted);">Timing: ${s.timing}</div>
+            <div class="badge badge-success" style="margin-top:6px;font-size:0.65rem;">${s.evidence}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+// ===== HABITS =====
+function renderHabitsSection() {
+  const today = TXUtils.date.today();
+  const todayHabits = TXUtils.storage.get('habits_' + today) || [];
+
+  document.getElementById('habitsContent').innerHTML = TX_DATA.habits.map(h => `
+    <div class="habit-row" style="padding:14px 0;">
+      <div class="habit-check ${todayHabits.includes(h.id) ? 'done' : ''}" onclick="toggleHabit('${h.id}', this)">${todayHabits.includes(h.id) ? '✓' : ''}</div>
+      <div style="flex:1;">
+        <div style="font-size:0.9rem;font-weight:600;">${h.icon} ${h.name}</div>
+        <div style="font-size:0.78rem;color:var(--text-muted);">${h.desc}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+        <span class="badge badge-primary">+${h.xp} XP</span>
+        <span class="badge badge-${h.category==='Nutrition'?'success':h.category==='Sleep'?'info':'warning'}" style="font-size:0.6rem;">${h.category}</span>
+      </div>
+    </div>
+  `).join('');
+
+  // Morning routine
+  document.getElementById('morningRoutineContent').innerHTML = `
+    <div class="card">
+      ${TX_DATA.morningRoutine.map(r => `
+        <div style="display:flex;gap:16px;padding:14px 0;border-bottom:1px solid var(--border);">
+          <div style="color:var(--primary-light);font-weight:700;font-size:0.82rem;min-width:60px;">${r.time}</div>
+          <div style="font-size:1.1rem;">${r.icon}</div>
+          <div style="flex:1;">
+            <div style="font-size:0.88rem;font-weight:600;">${r.habit}</div>
+            <div style="font-size:0.78rem;color:var(--text-muted);">${r.desc}</div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+
+  document.getElementById('nightRoutineContent').innerHTML = `
+    <div class="card">
+      ${TX_DATA.nightRoutine.map(r => `
+        <div style="display:flex;gap:16px;padding:14px 0;border-bottom:1px solid var(--border);">
+          <div style="color:var(--accent);font-weight:700;font-size:0.82rem;min-width:60px;">${r.time}</div>
+          <div style="font-size:1.1rem;">${r.icon}</div>
+          <div style="flex:1;">
+            <div style="font-size:0.88rem;font-weight:600;">${r.habit}</div>
+            <div style="font-size:0.78rem;color:var(--text-muted);">${r.desc}</div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function toggleHabit(habitId, el) {
+  const today = TXUtils.date.today();
+  let habits = TXUtils.storage.get('habits_' + today) || [];
+  const idx = habits.indexOf(habitId);
+  if (idx >= 0) { habits.splice(idx, 1); el.classList.remove('done'); el.textContent = ''; }
+  else {
+    habits.push(habitId);
+    el.classList.add('done'); el.textContent = '✓';
+    const habit = TX_DATA.habits.find(h => h.id === habitId);
+    if (habit) TXUtils.xp.add(habit.xp, 'Habit: ' + habit.name);
+  }
+  TXUtils.storage.set('habits_' + today, habits);
+}
+
+// ===== NOTES =====
+function renderNotes() {
+  const entries = TXUtils.journal.getAll();
+  const container = document.getElementById('notesList');
+  if (!container) return;
+
+  if (!entries.length) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon">📔</div><h4>Start your journal</h4><p>Your thoughts, reflections, and progress notes live here.</p></div>`;
+  } else {
+    container.innerHTML = entries.map(e => `
+      <div class="journal-entry">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:8px;">
+          <h4 style="font-size:0.92rem;">${e.title || 'Untitled Entry'}</h4>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-sm btn-ghost" onclick="editNote('${e.id}')">Edit</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteNote('${e.id}')">✕</button>
+          </div>
+        </div>
+        <div class="journal-date">${TXUtils.date.format(e.date)} ${e.mood ? ['','😞','😕','😐','🙂','😁'][e.mood] || '' : ''}</div>
+        <p style="font-size:0.85rem;line-height:1.7;color:var(--text-secondary);">${e.content?.slice(0, 200) || ''}${e.content?.length > 200 ? '...' : ''}</p>
+        ${e.tags?.length ? `<div class="journal-tags">${e.tags.map(t => `<span class="journal-tag">#${t}</span>`).join('')}</div>` : ''}
+      </div>
+    `).join('');
+  }
+
+  // Stats
+  const statsEl = document.getElementById('journalStats');
+  if (statsEl) {
+    statsEl.innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:8px;font-size:0.85rem;">
+        <div style="display:flex;justify-content:space-between;"><span>Total entries</span><strong>${entries.length}</strong></div>
+        <div style="display:flex;justify-content:space-between;"><span>This week</span><strong>${entries.filter(e => new Date(e.date) >= new Date(Date.now() - 7*86400000)).length}</strong></div>
+        <div style="display:flex;justify-content:space-between;"><span>This month</span><strong>${entries.filter(e => new Date(e.date).getMonth() === new Date().getMonth()).length}</strong></div>
+      </div>
+    `;
+  }
+
+  // Tags
+  const tagsEl = document.getElementById('notesTags');
+  if (tagsEl) {
+    const allTags = [...new Set(entries.flatMap(e => e.tags || []))];
+    tagsEl.innerHTML = allTags.map(t => `<span class="journal-tag" style="cursor:pointer;margin:3px;display:inline-block;" onclick="filterNotes('#${t}')">#${t}</span>`).join('') || '<p style="font-size:0.82rem;color:var(--text-muted);">No tags yet</p>';
+  }
+
+  // Set note date
+  document.getElementById('noteDate').textContent = TXUtils.date.todayLabel();
+}
+
+function filterNotes(query) {
+  const q = (query || document.getElementById('notesSearch')?.value || '').toLowerCase();
+  const entries = TXUtils.journal.getAll().filter(e =>
+    !q || e.title?.toLowerCase().includes(q) || e.content?.toLowerCase().includes(q) || e.tags?.some(t => ('#'+t).includes(q))
+  );
+  const container = document.getElementById('notesList');
+  if (!container) return;
+  container.innerHTML = entries.length ? entries.map(e => `
+    <div class="journal-entry">
+      <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+        <h4 style="font-size:0.92rem;">${e.title || 'Untitled'}</h4>
+        <button class="btn btn-sm btn-danger" onclick="deleteNote('${e.id}')">✕</button>
+      </div>
+      <div class="journal-date">${TXUtils.date.format(e.date)}</div>
+      <p style="font-size:0.85rem;color:var(--text-secondary);">${(e.content||'').slice(0,200)}...</p>
+    </div>
+  `).join('') : '<div class="empty-state"><p>No entries match your search</p></div>';
+}
+
+function selectNoteMood(val) {
+  noteMood = val;
+  document.querySelectorAll('[id^="noteMood_"]').forEach((btn, i) => {
+    btn.style.opacity = (i + 1) === val ? '1' : '0.3';
+    btn.style.transform = (i + 1) === val ? 'scale(1.2)' : '';
+  });
+}
+
+function saveJournalEntry() {
+  const title = document.getElementById('noteTitle')?.value?.trim() || 'Journal Entry';
+  const content = document.getElementById('noteContent')?.value?.trim();
+  const tags = document.getElementById('noteTags')?.value?.split(',').map(t => t.trim()).filter(Boolean) || [];
+
+  if (!content) { TXUtils.toast.warning('Write something before saving!'); return; }
+
+  const entry = {
+    id: currentNoteId || 'note_' + Date.now(),
+    title, content, tags, mood: noteMood,
+    date: TXUtils.date.today(), timestamp: Date.now()
+  };
+  TXUtils.journal.save(entry);
+  currentNoteId = null;
+  TXUtils.toast.success('Journal entry saved! 📔');
+  TXUtils.xp.add(15, 'Wrote a journal entry');
+  TXUtils.modal.close('addNoteModal');
+  document.getElementById('noteTitle').value = '';
+  document.getElementById('noteContent').value = '';
+  document.getElementById('noteTags').value = '';
+  renderNotes();
+}
+
+function editNote(id) {
+  const entry = TXUtils.journal.getAll().find(e => e.id === id);
+  if (!entry) return;
+  currentNoteId = id;
+  document.getElementById('noteModalTitle').textContent = 'Edit Journal Entry';
+  document.getElementById('noteTitle').value = entry.title || '';
+  document.getElementById('noteContent').value = entry.content || '';
+  document.getElementById('noteTags').value = (entry.tags || []).join(', ');
+  selectNoteMood(entry.mood || 3);
+  TXUtils.modal.open('addNoteModal');
+}
+
+function deleteNote(id) {
+  if (!confirm('Delete this journal entry?')) return;
+  TXUtils.journal.delete(id);
+  TXUtils.toast.info('Entry deleted');
+  renderNotes();
+}
+
+// ===== ACHIEVEMENTS =====
+function renderAchievements() {
+  const earned = TXUtils.achievements.getEarned();
+  const xp = TXUtils.xp.get();
+  const level = TXUtils.xp.getLevel(xp);
+  const nextLevel = TXUtils.xp.getNextLevel(xp);
+  const pct = nextLevel ? Math.round(((xp - level.xp_required) / (nextLevel.xp_required - level.xp_required)) * 100) : 100;
+
+  document.getElementById('ach_levelBadge').textContent = level.badge;
+  document.getElementById('ach_levelName').textContent = 'Level ' + level.level;
+  document.getElementById('ach_levelLabel').textContent = level.name;
+  document.getElementById('ach_xpDisplay').textContent = xp.toLocaleString() + ' XP';
+  document.getElementById('ach_xpFill').style.width = pct + '%';
+  document.getElementById('ach_nextLevel').textContent = nextLevel ? `${nextLevel.xp_required - xp} XP until Level ${nextLevel.level}: ${nextLevel.name} ${nextLevel.badge}` : '🎉 Max Level Reached!';
+  document.getElementById('ach_earnedCount').textContent = earned.length;
+
+  document.getElementById('achievementsGrid').innerHTML = TX_DATA.achievements.map(a => `
+    <div class="achievement-card ${earned.includes(a.id) ? 'earned' : ''}">
+      <div class="achievement-icon">${a.icon}</div>
+      <h4 style="font-size:0.88rem;margin-bottom:4px;">${a.name}</h4>
+      <p style="font-size:0.75rem;color:var(--text-muted);margin-bottom:8px;">${a.desc}</p>
+      <div style="display:flex;justify-content:center;gap:6px;">
+        <span class="badge badge-${earned.includes(a.id)?'warning':'info'}">${earned.includes(a.id)?'✓ Earned':'+' + a.xp + ' XP'}</span>
+        <span class="badge badge-primary" style="font-size:0.62rem;">${a.category}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ===== SUPPLEMENTS =====
+function renderSupplements() {
+  document.getElementById('supplementsList').innerHTML = TX_DATA.supplements.map(s => `
+    <div class="supplement-card">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+        <span style="font-size:1.5rem;">${s.emoji}</span>
+        <h4>${s.name}</h4>
+        <span class="badge badge-${s.evidence.startsWith('Tier 1') ? 'success' : s.evidence.startsWith('Tier 2') ? 'warning' : 'info'}" style="margin-left:auto;font-size:0.62rem;">${s.evidence}</span>
+      </div>
+      <div style="font-size:0.82rem;color:var(--text-secondary);line-height:1.8;">
+        <div>📦 <strong>Dose:</strong> ${s.dose}</div>
+        <div>⏰ <strong>Timing:</strong> ${s.timing}</div>
+        <div>✅ <strong>Benefit:</strong> ${s.benefit}</div>
+        <div>💰 <strong>Cost:</strong> ${s.cost}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ===== SETTINGS =====
+function renderSettings() {
+  document.getElementById('settingsProfile').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:0.85rem;">
+      <div><span style="color:var(--text-muted);">Name:</span> ${profile.firstName || ''} ${profile.lastName || ''}</div>
+      <div><span style="color:var(--text-muted);">Email:</span> ${user.email || '—'}</div>
+      <div><span style="color:var(--text-muted);">Plan:</span> ${user.plan || 'Free'}</div>
+      <div><span style="color:var(--text-muted);">Member since:</span> ${TXUtils.date.format(user.created_at)}</div>
+    </div>
+    <button class="btn btn-secondary btn-sm" style="margin-top:16px;" onclick="window.location.href='onboarding.html'">🔄 Re-run Onboarding</button>
+  `;
+
+  document.getElementById('notificationSettings').innerHTML = [
+    {key:'notif_workout',label:'Workout reminders'},
+    {key:'notif_meals',label:'Meal logging reminders'},
+    {key:'notif_water',label:'Water reminders'},
+    {key:'notif_weekly',label:'Weekly progress report'},
+  ].map(n => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
+      <span style="font-size:0.88rem;">${n.label}</span>
+      <div class="toggle ${profile[n.key] !== false ? 'on' : ''}" onclick="this.classList.toggle('on')"></div>
+    </div>
+  `).join('');
+}
+
+// ===== EXPORT FUNCTIONS =====
+function exportWorkouts() {
+  const history = TXUtils.workouts.getHistory();
+  TXUtils.export.csv(history.map(w => ({ Date: w.date, Name: w.name, Plan: w.plan, Sets: w.totalSets, Volume_kg: w.totalVolume, Duration_sec: w.duration })), 'transformx-workouts');
+  TXUtils.toast.success('Workouts exported as CSV!');
+}
+
+function exportNutrition() {
+  const logs = TXUtils.storage.get('nutrition_logs') || {};
+  const rows = [];
+  Object.entries(logs).forEach(([date, log]) => {
+    (log.meals || []).forEach(meal => {
+      (meal.items || []).forEach(item => {
+        rows.push({ Date: date, Meal: meal.type, Food: item.name, Calories: item.logged_calories, Protein_g: item.logged_protein, Carbs_g: item.logged_carbs, Fat_g: item.logged_fat });
+      });
+    });
+  });
+  TXUtils.export.csv(rows, 'transformx-nutrition');
+  TXUtils.toast.success('Nutrition logs exported as CSV!');
+}
+
+function exportMeasurements() {
+  TXUtils.export.csv(TXUtils.measurements.getAll(), 'transformx-measurements');
+  TXUtils.toast.success('Measurements exported as CSV!');
+}
+
+function exportAll() {
+  const all = {
+    profile, workouts: TXUtils.workouts.getHistory(),
+    nutrition: TXUtils.storage.get('nutrition_logs'),
+    measurements: TXUtils.measurements.getAll(),
+    journal: TXUtils.journal.getAll(),
+    achievements: TXUtils.achievements.getEarned(),
+    xp: TXUtils.xp.get()
+  };
+  const blob = new Blob([JSON.stringify(all, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'transformx-all-data.json'; a.click();
+  URL.revokeObjectURL(url);
+  TXUtils.toast.success('All data exported as JSON!');
+}
+
+function exportProgress() {
+  const measurements = TXUtils.measurements.getAll();
+  const latest = measurements[measurements.length - 1] || {};
+  const html = `
+    <h1>TransformX AI — Progress Report</h1>
+    <h2>Profile: ${profile.firstName} ${profile.lastName}</h2>
+    <h2>Current Stats</h2>
+    <table><tr><th>Metric</th><th>Value</th></tr>
+    ${TX_DATA.bodyParts.map(bp => `<tr><td>${bp.label}</td><td>${latest[bp.key] || '—'} ${bp.unit}</td></tr>`).join('')}
+    </table>
+    <h2>Workout History (Last 10)</h2>
+    <table><tr><th>Date</th><th>Workout</th><th>Sets</th><th>Volume</th></tr>
+    ${TXUtils.workouts.getHistory().slice(0,10).map(w => `<tr><td>${w.date}</td><td>${w.name}</td><td>${w.totalSets}</td><td>${w.totalVolume}kg</td></tr>`).join('')}
+    </table>
+  `;
+  TXUtils.export.print(html, 'TransformX Progress Report');
+}
+
+function exportPlan() {
+  const plan = aiPlan;
+  const html = `
+    <h1>TransformX AI — My Transformation Plan</h1>
+    <h2>${profile.firstName}'s Personalized Plan</h2>
+    <p>Generated: ${TXUtils.date.format(plan.generated_at)}</p>
+    <h2>Daily Targets</h2>
+    <table><tr><th>Metric</th><th>Target</th></tr>
+    <tr><td>Calories</td><td>${plan.targetCalories} kcal</td></tr>
+    <tr><td>Protein</td><td>${plan.macros?.protein}g</td></tr>
+    <tr><td>Carbs</td><td>${plan.macros?.carbs}g</td></tr>
+    <tr><td>Fat</td><td>${plan.macros?.fat}g</td></tr>
+    </table>
+    <h2>Workout Plan: ${plan.workout_plan?.name}</h2>
+    ${plan.workout_plan?.schedule?.map(d => `<p><strong>${d.day}:</strong> ${d.name}</p>`).join('') || ''}
+  `;
+  TXUtils.export.print(html, 'TransformX Transformation Plan');
+}
+
+function clearAllData() {
+  if (!confirm('⚠️ This will delete ALL your TransformX data including workouts, nutrition, measurements, and journal. This cannot be undone.\n\nType "RESET" to confirm.')) return;
+  const confirmation = prompt('Type RESET to confirm:');
+  if (confirmation !== 'RESET') { TXUtils.toast.info('Reset cancelled.'); return; }
+  TXUtils.storage.clear();
+  TXUtils.toast.success('All data cleared. Redirecting...');
+  setTimeout(() => window.location.href = 'auth.html', 1500);
+}
+
+// ===== GLOBAL SEARCH =====
+function handleGlobalSearch(query) {
+  if (!query || query.length < 2) return;
+  const q = query.toLowerCase();
+  const exResults = TX_DATA.exercises.filter(ex => ex.name.toLowerCase().includes(q) || ex.muscle.toLowerCase().includes(q)).slice(0, 3);
+  const foodResults = TX_DATA.foods.filter(f => f.name.toLowerCase().includes(q)).slice(0, 3);
+  // Could show a dropdown — for now just navigate
+  if (exResults.length) { navigate('workout'); showTab('workout', 'library'); document.getElementById('exerciseSearch').value = query; filterExercises(query); }
+  else if (foodResults.length) { navigate('nutrition'); }
+}
+
+// ===== START =====
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
