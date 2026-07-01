@@ -2,25 +2,39 @@
 <html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Dashboard — TransformX AI</title>
   <link rel="stylesheet" href="css/style.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
+    /* Fix old CSS vars to new 2-color system */
+    :root {
+      --bg-secondary: var(--bg-3);
+      --bg-card: var(--bg-2);
+      --bg-hover: var(--gold-10);
+      --border-light: var(--border-gold);
+      --text-primary: var(--text);
+      --primary: var(--gold);
+      --success: #10b981;
+      --warning: #f59e0b;
+      --error: #ef4444;
+      --accent: var(--gold-light);
+      --primary-light: var(--gold-light);
+    }
     .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
     .section-header h2 { font-size: 1.4rem; }
     .macro-row { display: flex; gap: 12px; flex-wrap: wrap; }
-    .macro-pill { flex: 1; min-width: 80px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px; text-align: center; }
-    .macro-pill-val { font-size: 1.1rem; font-weight: 800; }
-    .macro-pill-label { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; }
-    .workout-set-input { width: 70px; padding: 6px 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-secondary); color: var(--text-primary); font-size: 0.85rem; text-align: center; }
-    .workout-set-input:focus { border-color: var(--primary); }
-    .active-timer { font-size: 2.5rem; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
-    .pr-badge { background: linear-gradient(135deg, #fbbf24, #f97316); color: white; font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
-    .food-search-results { max-height: 300px; overflow-y: auto; background: var(--bg-card); border: 1px solid var(--border-light); border-radius: var(--radius-sm); margin-top: 4px; }
+    .macro-pill { flex: 1; min-width: 72px; background: var(--bg-3); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px; text-align: center; }
+    .macro-pill-val { font-size: 1.1rem; font-weight: 900; color: var(--gold); }
+    .macro-pill-label { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; }
+    .workout-set-input { width: 70px; padding: 7px 8px; border-radius: 6px; border: 1.5px solid var(--border); background: var(--bg-3); color: var(--text); font-size: 0.85rem; text-align: center; transition: border-color 0.15s; }
+    .workout-set-input:focus { border-color: var(--gold); }
+    .active-timer { font-size: 2.5rem; font-weight: 900; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; color: var(--gold); }
+    .pr-badge { background: linear-gradient(135deg, var(--gold-dark), var(--gold-light)); color: var(--black); font-size: 0.7rem; font-weight: 800; padding: 2px 8px; border-radius: 999px; }
+    .food-search-results { max-height: 300px; overflow-y: auto; background: var(--bg-2); border: 1px solid var(--border-gold); border-radius: var(--radius-sm); margin-top: 4px; }
     .food-result-item { padding: 10px 14px; cursor: pointer; border-bottom: 1px solid var(--border); transition: background 0.15s; display: flex; justify-content: space-between; align-items: center; }
-    .food-result-item:hover { background: var(--bg-hover); }
+    .food-result-item:hover { background: var(--gold-10); }
     .food-result-item:last-child { border-bottom: none; }
     .measurement-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
     .measurement-row:last-child { border-bottom: none; }
@@ -28,17 +42,52 @@
     .chat-typing-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-muted); animation: pulse-dot 1.2s infinite; }
     .chat-typing-dot:nth-child(2) { animation-delay: 0.2s; }
     .chat-typing-dot:nth-child(3) { animation-delay: 0.4s; }
-    .cal-event { font-size: 0.65rem; background: var(--primary); color: white; border-radius: 3px; padding: 1px 4px; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
-    .cal-event.meal { background: var(--success); }
-    .cal-event.measurement { background: var(--warning); color: #333; }
-    .plan-day-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 8px; transition: var(--transition); }
-    .plan-day-card:hover { border-color: var(--primary); }
-    .plan-day-card.active-day { border-color: var(--primary); background: rgba(99,102,241,0.06); }
+    @keyframes pulse-dot { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(0.6);opacity:0.5} }
+    .cal-event { font-size: 0.62rem; background: var(--gold); color: var(--black); border-radius: 3px; padding: 1px 4px; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; font-weight:700; }
+    .cal-event.meal { background: #10b981; color: white; }
+    .cal-event.measurement { background: #3b82f6; color: white; }
+    .plan-day-card { background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px; margin-bottom: 8px; transition: all 0.25s ease; }
+    .plan-day-card:hover { border-color: var(--gold); }
+    .plan-day-card.active-day { border-color: var(--gold); background: var(--gold-10); }
     .habit-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
-    .habit-check { width: 24px; height: 24px; border-radius: 6px; border: 2px solid var(--border-light); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: var(--transition-fast); flex-shrink: 0; }
-    .habit-check.done { background: var(--success); border-color: var(--success); color: white; }
-    .supplement-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 16px; transition: var(--transition); }
-    .supplement-card:hover { border-color: var(--border-light); }
+    .habit-check { width: 26px; height: 26px; border-radius: 6px; border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s ease; flex-shrink: 0; }
+    .habit-check.done { background: var(--gold); border-color: var(--gold); color: var(--black); font-weight:900; }
+    .supplement-card { background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 16px; transition: all 0.25s ease; }
+    .supplement-card:hover { border-color: var(--border-gold); }
+    .empty-state { text-align:center; padding:40px 20px; }
+    .empty-icon { font-size:2.5rem; margin-bottom:12px; }
+    .journal-entry { background:var(--bg-2); border:1px solid var(--border); border-radius:var(--radius-sm); padding:18px; margin-bottom:12px; }
+    .journal-entry:hover { border-color: var(--border-gold); }
+    .journal-date { font-size:0.72rem; color:var(--text-muted); margin-bottom:8px; font-weight:600; letter-spacing:0.05em; text-transform:uppercase; }
+    .journal-tags { display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
+    .journal-tag { background:var(--gold-10); border:1px solid var(--gold-20); border-radius:999px; padding:2px 10px; font-size:0.7rem; color:var(--gold); font-weight:700; }
+    .achievement-card { background:var(--bg-2); border:1px solid var(--border); border-radius:var(--radius); padding:18px; text-align:center; transition:all 0.25s ease; }
+    .achievement-card.earned { border-color:var(--gold-30); background:var(--gold-10); }
+    .achievement-card:not(.earned) { opacity:0.45; filter:grayscale(0.8); }
+    .exercise-card { background:var(--bg-2); border:1px solid var(--border); border-radius:var(--radius-sm); padding:16px; cursor:pointer; transition:all 0.25s ease; text-align:center; }
+    .exercise-card:hover { border-color:var(--gold); transform:translateY(-2px); }
+    .exercise-thumb { font-size:2rem; margin-bottom:8px; }
+    .food-item { display:flex; align-items:center; gap:10px; padding:10px; background:var(--bg-3); border-radius:var(--radius-xs); margin-bottom:6px; }
+    .food-icon { width:36px; height:36px; border-radius:6px; background:var(--bg-4); display:flex; align-items:center; justify-content:center; font-size:1.2rem; flex-shrink:0; }
+    .food-macro { font-size:0.7rem; color:var(--text-muted); }
+    .food-macro span { color:var(--gold); font-weight:700; }
+    .set-row { display:grid; grid-template-columns:38px 1fr 1fr 1fr auto; gap:8px; align-items:center; padding:8px 0; border-bottom:1px solid var(--border); }
+    .set-row.completed { background:rgba(245,166,35,0.05); border-radius:6px; }
+    .set-number { width:28px; height:28px; border-radius:50%; background:var(--bg-3); display:flex; align-items:center; justify-content:center; font-size:0.72rem; font-weight:800; color:var(--text-muted); }
+    .rest-timer { background:var(--gold-10); border:1px solid var(--gold-20); border-radius:var(--radius); padding:20px; text-align:center; }
+    .water-drop { width:28px; height:36px; border-radius:50% 50% 50% 50% / 60% 60% 40% 40%; background:var(--bg-4); border:1.5px solid var(--border); cursor:pointer; transition:all 0.15s ease; display:inline-block; }
+    .water-drop.filled { background:linear-gradient(180deg,#06b6d4,#0284c7); border-color:#0284c7; }
+    .water-drops { display:flex; gap:6px; flex-wrap:wrap; }
+    .streak-display { display:flex; align-items:center; gap:8px; background:var(--gold-10); border:1px solid var(--gold-20); border-radius:var(--radius-sm); padding:6px 14px; }
+    .streak-flame { font-size:1.2rem; animation:flame 1.5s ease-in-out infinite; }
+    @keyframes flame { 0%,100%{transform:scale(1) rotate(-3deg)} 50%{transform:scale(1.1) rotate(3deg)} }
+    .badge-orange { background:rgba(249,115,22,0.15); color:#f97316; border:1px solid rgba(249,115,22,0.25); }
+    @media (max-width:480px) {
+      .set-row { grid-template-columns: 28px 1fr 1fr auto; gap:5px; }
+      .set-row > *:nth-child(4) { display:none; } /* hide previous col */
+      .active-timer { font-size:1.8rem; }
+      .dashboard-grid { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
@@ -138,6 +187,36 @@
     <button class="btn btn-primary btn-sm" onclick="TXUtils.auth.logout()">Logout</button>
   </div>
 </header>
+
+<!-- MOBILE BOTTOM NAV -->
+<nav class="mobile-bottom-nav" id="mobileBottomNav">
+  <div class="mobile-nav-items">
+    <button class="mobile-nav-item active" id="mbnav-dashboard" onclick="navigate('dashboard')">
+      <span class="mobile-nav-icon">🏠</span>
+      <span class="mobile-nav-label">Home</span>
+    </button>
+    <button class="mobile-nav-item" id="mbnav-workout" onclick="navigate('workout')">
+      <span class="mobile-nav-icon">💪</span>
+      <span class="mobile-nav-label">Workout</span>
+    </button>
+    <button class="mobile-nav-item" id="mbnav-nutrition" onclick="navigate('nutrition')">
+      <span class="mobile-nav-icon">🥗</span>
+      <span class="mobile-nav-label">Nutrition</span>
+    </button>
+    <button class="mobile-nav-item" id="mbnav-progress" onclick="navigate('progress')">
+      <span class="mobile-nav-icon">📊</span>
+      <span class="mobile-nav-label">Progress</span>
+    </button>
+    <button class="mobile-nav-item" id="mbnav-chat" onclick="navigate('chat')">
+      <span class="mobile-nav-icon">🤖</span>
+      <span class="mobile-nav-label">AI Coach</span>
+    </button>
+    <button class="mobile-nav-item" id="mbnav-more" onclick="openSidebar()">
+      <span class="mobile-nav-icon">⋯</span>
+      <span class="mobile-nav-label">More</span>
+    </button>
+  </div>
+</nav>
 
 <!-- MAIN CONTENT -->
 <main class="main-content">
@@ -888,6 +967,11 @@ function navigate(section) {
   if (sectionEl) sectionEl.classList.add('active');
   document.querySelector(`[data-section="${section}"]`)?.classList.add('active');
 
+  // Update mobile bottom nav
+  document.querySelectorAll('.mobile-nav-item').forEach(b => b.classList.remove('active'));
+  const mbn = document.getElementById('mbnav-' + section);
+  if (mbn) mbn.classList.add('active');
+
   const titles = { dashboard: 'Dashboard', workout: 'Workout', nutrition: 'Nutrition', progress: 'Progress',
     calendar: 'Calendar', chat: 'AI Coach', plan: 'My Plan', habits: 'Habits', notes: 'Journal',
     achievements: 'Achievements', supplements: 'Supplements', settings: 'Settings' };
@@ -911,7 +995,11 @@ function navigate(section) {
   };
   if (renders[section]) renders[section]();
   closeSidebar();
+
+  // Scroll to top on mobile
+  if (window.innerWidth <= 900) window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+
 
 function showTab(section, tab) {
   const prefix = section + '-';
