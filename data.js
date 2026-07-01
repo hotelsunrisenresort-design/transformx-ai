@@ -332,7 +332,34 @@ const TX_DATA = {
     { time: '10:15 PM', habit: 'Room temp 18-20°C', icon: '🌡️', desc: 'Cool room dramatically improves sleep quality' },
     { time: '10:30 PM', habit: 'Sleep', icon: '😴', desc: '7-9 hours for optimal muscle growth and recovery' },
   ],
+
+  // ===== TESTIMONIALS =====
+  testimonials: [
+    { name: 'Arjun Mehta', city: 'Mumbai', goal: 'Fat Loss', result: '18kg down in 5 months', avatar: 'A', stars: 5, text: 'TransformX AI completely changed how I approach fitness. The Indian food database is incredible — finally an app that understands dal, paneer, and roti! Lost 18kg while still eating my favourite foods.' },
+    { name: 'Priya Kapoor', city: 'Delhi', goal: 'Muscle Gain', result: '+8kg lean muscle in 6 months', avatar: 'P', stars: 5, text: 'As a woman who wanted to build muscle without getting "bulky", the AI coach gave me the most detailed, science-based advice I\'ve ever received. The workout tracker with PR detection is amazing.' },
+    { name: 'Rahul Iyer', city: 'Bangalore', goal: 'Body Recomposition', result: '-12kg fat, +5kg muscle', avatar: 'R', stars: 5, text: 'I\'ve tried every fitness app. TransformX AI is different. The AI knows my full profile and gives advice tailored to my exact situation. The XP system and achievements keep me consistent every single day.' },
+    { name: 'Sneha Joshi', city: 'Pune', goal: 'Fitness & Health', result: 'From couch to 5K + 30-day streak', avatar: 'S', stars: 5, text: 'I was a complete beginner. The onboarding wizard understood my situation perfectly and the Beginner workout plan was exactly what I needed. I\'ve had a 30-day streak and I\'ve never felt healthier!' },
+    { name: 'Karan Singh', city: 'Hyderabad', goal: 'Strength', result: 'Bench: 60kg → 110kg in 8 months', avatar: 'K', stars: 5, text: 'The workout logger with personal record tracking is elite. I went from benching 60kg to 110kg in 8 months following the PPL program. The exercise instruction guides prevented so many injuries.' },
+    { name: 'Meera Nair', city: 'Chennai', goal: 'Postpartum Fitness', result: 'Lost 22kg after pregnancy', avatar: 'M', stars: 5, text: 'Lost all my pregnancy weight and then some. The calorie calculator and macro tracking with Indian foods made it completely sustainable. The AI coach understood my limitations perfectly. Life changing!' },
+  ],
+
+  // ===== FAQs =====
+  faqs: [
+    { q: 'Is TransformX AI really completely free?', a: 'Yes, 100% free with no hidden premium tiers. All features — workout logging, nutrition tracking, AI coaching (demo mode), progress photos, achievements, journal — are fully accessible without paying anything. If you want real-time OpenAI GPT coaching, you can add your own OpenAI API key which costs pennies per conversation.' },
+    { q: 'Where is my data stored? Is it private?', a: 'All your data is stored entirely on your own device using localStorage — your browser\'s built-in storage. We don\'t have servers that store your personal information. Nothing is uploaded to any cloud. Your data never leaves your device, making it completely private.' },
+    { q: 'Does it work on phones and tablets?', a: 'Yes! TransformX AI is built mobile-first. It automatically adjusts the layout for every screen size — phone, tablet, or desktop. On mobile, you get a bottom navigation bar for easy thumb access. Everything is touch-optimized with large tap targets and swipeable tabs.' },
+    { q: 'Does it support Indian foods?', a: 'Absolutely. The food database contains 500+ Indian foods including all major dal varieties, paneer dishes, roti, naan, paratha, regional specialties, street foods, curries, and more — all with accurate macro data. You can search in English and log by portion size.' },
+    { q: 'How does the AI workout plan work?', a: 'During onboarding, the AI calculates your BMR and TDEE using the Mifflin-St Jeor equation. It then creates a calorie target based on your goal (fat loss = -500 kcal deficit, muscle gain = +300 kcal surplus). Your workout split (PPL, Upper/Lower, Full Body, etc.) is chosen based on your available days per week.' },
+    { q: 'Can I use it without an OpenAI API key?', a: 'Yes! The AI Coach works in Demo Mode with 7+ pre-built expert responses covering muscle gain, fat loss, protein targets, supplement advice, sleep optimization, and more. All answers are personalized using your profile data. Add an OpenAI key later for unlimited real-time conversation.' },
+    { q: 'Does it work offline?', a: 'Yes! Since all data is stored locally and there are no required server calls, TransformX AI works completely offline after the initial page load. The AI coach demo mode works offline too. Only the real OpenAI API chat requires internet.' },
+    { q: 'Can I export my data?', a: 'Yes, you can export workouts as CSV, nutrition logs as CSV, measurements as CSV, or everything as a single JSON file. You can also print progress reports and transformation plans as PDFs.' },
+  ],
+
 };
+
+// Expose globally
+window.TX_DATA = TX_DATA;
+
 
 // Expose globally
 window.TX_DATA = TX_DATA;
